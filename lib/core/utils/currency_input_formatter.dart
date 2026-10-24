@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 
 class CurrencyInputFormatter extends TextInputFormatter {
+  const CurrencyInputFormatter();
+
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,

@@ -2375,6 +2375,22 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $MerchantRulesTable merchantRules = $MerchantRulesTable(this);
+  late final Index idxTransactionsCreatedAt = Index(
+    'idx_transactions_created_at',
+    'CREATE INDEX idx_transactions_created_at ON transactions (created_at)',
+  );
+  late final Index idxTransactionsWalletId = Index(
+    'idx_transactions_wallet_id',
+    'CREATE INDEX idx_transactions_wallet_id ON transactions (wallet_id)',
+  );
+  late final Index idxTransactionsCategoryId = Index(
+    'idx_transactions_category_id',
+    'CREATE INDEX idx_transactions_category_id ON transactions (category_id)',
+  );
+  late final Index idxTransactionsIsCategorized = Index(
+    'idx_transactions_is_categorized',
+    'CREATE INDEX idx_transactions_is_categorized ON transactions (is_categorized)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2386,6 +2402,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     savingsGoals,
     savingsDeposits,
     merchantRules,
+    idxTransactionsCreatedAt,
+    idxTransactionsWalletId,
+    idxTransactionsCategoryId,
+    idxTransactionsIsCategorized,
   ];
 }
 

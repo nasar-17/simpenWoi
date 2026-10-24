@@ -1,5 +1,5 @@
-import '../category_catalog.dart';
-import '../transaction_values.dart';
+import '../constants/category_catalog.dart';
+import '../constants/transaction_values.dart';
 
 class CategoryKeywordGroup {
   const CategoryKeywordGroup({
@@ -119,11 +119,7 @@ const List<CategoryKeywordGroup> categoryKeywords = <CategoryKeywordGroup>[
   CategoryKeywordGroup(
     categoryId: CategoryIds.gaji,
     type: TransactionType.income,
-    keywords: <String>[
-      'gaji',
-      'upah',
-      'honor',
-    ],
+    keywords: <String>['gaji', 'upah', 'honor'],
   ),
 ];
 

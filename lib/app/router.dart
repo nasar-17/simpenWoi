@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/capture/uncategorized_page.dart';
-import '../features/home/home_page.dart';
-import '../features/recap/recap_page.dart';
-import '../features/savings_goals/savings_goals_page.dart';
-import '../features/settings/settings_page.dart';
+import '../features/capture/presentation/pages/uncategorized_page.dart';
+import '../features/home/presentation/pages/home_page.dart';
+import '../features/recap/presentation/pages/recap_page.dart';
+import '../features/savings_goals/presentation/pages/savings_goals_page.dart';
+import '../features/settings/presentation/pages/settings_page.dart';
 import 'app_shell.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
     routes: <RouteBase>[
       StatefulShellRoute.indexedStack(
-        builder: (BuildContext context, GoRouterState state,
-            StatefulNavigationShell navigationShell) {
-          return AppShell(navigationShell: navigationShell);
-        },
+        builder:
+            (
+              BuildContext context,
+              GoRouterState state,
+              StatefulNavigationShell navigationShell,
+            ) {
+              return AppShell(navigationShell: navigationShell);
+            },
         branches: <StatefulShellBranch>[
           StatefulShellBranch(
             routes: <RouteBase>[
