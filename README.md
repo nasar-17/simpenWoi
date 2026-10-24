@@ -24,30 +24,34 @@ Aplikasi pengatur keuangan Android yang cepat, mudah, dan sepenuhnya offline.
 ```
 lib/
   main.dart
-  app/            # router, shell, dan tema
+  app/                    # shell, router, dan tema
   core/
-    database/     # skema Drift + migrasi
-    parser/       # parser teks dan nominal
-    utils/        # format rupiah dan input nominal
+    constants/            # nilai domain dan teks lintas fitur
+    database/             # skema Drift, migrasi, seed, tables/
+    parser/               # parser teks dan nominal
+    utils/                # format rupiah, tanggal, input nominal
+    widgets/              # widget kecil lintas fitur
   features/
-    transactions/ # repository dan provider transaksi
-    wallets/
-    savings_goals/
-    recap/
-    capture/      # jembatan notifikasi native + impor + layar kategori
-    home/
-    settings/
+    capture/              # jembatan notifikasi native + impor + kategori
+    home/                 # beranda dan sheet catat cepat
+    recap/                # rekap harian, mingguan, bulanan
+    savings_goals/        # target tabungan dan setoran
+    settings/             # pengaturan aplikasi dan notifikasi
+    transactions/         # repository, model, dan provider transaksi
+    wallets/              # dompet dan saldo
+docs/
+  CONVENTIONS.md          # struktur dan aturan kontribusi
 android/
   app/src/main/kotlin/com/drena/simpen_woi/
     MainActivity.kt                 # MethodChannel simpenwoi/capture
-    NotificationCaptureService.kt   # NotificationListenerService
-    CaptureQueue.kt                 # antrean SQLite pending_captures
-    CaptureParser.kt                # parser notifikasi per aplikasi
-    CaptureNotifier.kt              # notifikasi pertanyaan/kategori
-    CaptureActionReceiver.kt        # aksi kategori, balasan, ubah
-    CapturePreferences.kt           # kategori, aturan merchant, dedupe
-    SupportedApps.kt                # daftar paket yang dipantau
-    CaptureSimulator.kt             # simulasi debug
+    bridge/CaptureChannelHandler.kt # handler channel native
+    capture/
+      NotificationCaptureService.kt # NotificationListenerService
+      CaptureSimulator.kt           # simulasi debug
+      notify/                       # contract, intents, text, notifier, receiver
+      parser/                       # parser notifikasi per aplikasi
+      prefs/                        # kategori, aturan merchant, dedupe
+      queue/                        # antrean SQLite pending_captures
 ```
 
 ## Notifikasi otomatis
