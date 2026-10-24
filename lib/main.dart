@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 import 'app/router.dart';
 import 'app/theme.dart';
+import 'core/database/app_database.dart';
+import 'core/database/database_provider.dart';
 
-void main() {
-  runApp(const ProviderScope(child: SimpenWoiApp()));
+final GoRouter _appRouter = createAppRouter();
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID');
+  Intl.defaultLocale = 'id_ID';
+
+  final AppDatabase database = AppDatabase();
+  await database.seedDefaults();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        databaseProvider.overrideWithValue(database),
+      ],
+      child: const SimpenWoiApp(),
+    ),
+  );
 }
-
-final GoRouter _router = createAppRouter(const HomePage());
 
 class SimpenWoiApp extends StatelessWidget {
   const SimpenWoiApp({super.key});
@@ -22,33 +41,16 @@ class SimpenWoiApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      routerConfig: _router,
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(
-              'simpenWoi',
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pengatur keuangan offline',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ),
+      routerConfig: _appRouter,
+      locale: const Locale('id', 'ID'),
+      supportedLocales: const <Locale>[
+        Locale('id', 'ID'),
+      ],
+      localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }
