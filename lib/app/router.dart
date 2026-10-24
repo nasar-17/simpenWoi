@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/capture/uncategorized_page.dart';
 import '../features/home/home_page.dart';
 import '../features/recap/recap_page.dart';
 import '../features/savings_goals/savings_goals_page.dart';
@@ -53,6 +54,12 @@ GoRouter createAppRouter() {
         name: 'settings',
         builder: (BuildContext context, GoRouterState state) =>
             const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/uncategorized',
+        name: 'uncategorized',
+        builder: (BuildContext context, GoRouterState state) =>
+            const UncategorizedPage(),
       ),
     ],
   );

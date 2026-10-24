@@ -9,6 +9,7 @@ import 'app/router.dart';
 import 'app/theme.dart';
 import 'core/database/app_database.dart';
 import 'core/database/database_provider.dart';
+import 'features/capture/capture_sync_service.dart';
 
 final GoRouter _appRouter = createAppRouter();
 
@@ -30,8 +31,42 @@ Future<void> main() async {
   );
 }
 
-class SimpenWoiApp extends StatelessWidget {
+class SimpenWoiApp extends ConsumerStatefulWidget {
   const SimpenWoiApp({super.key});
+
+  @override
+  ConsumerState<SimpenWoiApp> createState() => _SimpenWoiAppState();
+}
+
+class _SimpenWoiAppState extends ConsumerState<SimpenWoiApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((Duration timeStamp) {
+      _syncCaptures();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncCaptures();
+    }
+  }
+
+  Future<void> _syncCaptures() async {
+    try {
+      await ref.read(captureSyncServiceProvider).sync();
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {

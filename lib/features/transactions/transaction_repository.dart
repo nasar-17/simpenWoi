@@ -24,6 +24,17 @@ class TransactionRepository {
     DateTime start,
     DateTime end,
   ) {
+    return _watchWhere(
+      _database.transactions.createdAt.isBiggerOrEqualValue(start) &
+          _database.transactions.createdAt.isSmallerThanValue(end),
+    );
+  }
+
+  Stream<List<TransactionDetail>> watchUncategorized() {
+    return _watchWhere(_database.transactions.isCategorized.equals(false));
+  }
+
+  Stream<List<TransactionDetail>> _watchWhere(Expression<bool> predicate) {
     final query =
         _database.select(_database.transactions).join([
       innerJoin(
@@ -35,10 +46,7 @@ class TransactionRepository {
         _database.categories.id.equalsExp(_database.transactions.categoryId),
       ),
     ])
-          ..where(
-            _database.transactions.createdAt.isBiggerOrEqualValue(start) &
-                _database.transactions.createdAt.isSmallerThanValue(end),
-          );
+          ..where(predicate);
 
     return query.watch().map((List<TypedResult> rows) {
       final List<TransactionDetail> details =
@@ -50,6 +58,13 @@ class TransactionRepository {
       });
       return details;
     });
+  }
+
+  Future<List<Category>> getCategories() async {
+    final List<Category> categories =
+        await _database.select(_database.categories).get();
+    categories.sort((Category a, Category b) => a.id.compareTo(b.id));
+    return categories;
   }
 
   Stream<List<Category>> watchCategories() {

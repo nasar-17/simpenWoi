@@ -21,3 +21,8 @@ final StreamProvider<List<TransactionDetail>> todayTransactionsProvider =
   final DateTime end = start.add(const Duration(days: 1));
   return ref.watch(transactionRepositoryProvider).watchBetween(start, end);
 });
+
+final StreamProvider<List<TransactionDetail>> uncategorizedTransactionsProvider =
+    StreamProvider<List<TransactionDetail>>(
+  (ref) => ref.watch(transactionRepositoryProvider).watchUncategorized(),
+);

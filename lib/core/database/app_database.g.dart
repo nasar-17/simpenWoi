@@ -2000,6 +2000,314 @@ class SavingsDepositsCompanion extends UpdateCompanion<SavingsDeposit> {
   }
 }
 
+class $MerchantRulesTable extends MerchantRules
+    with TableInfo<$MerchantRulesTable, MerchantRule> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MerchantRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _merchantMeta = const VerificationMeta(
+    'merchant',
+  );
+  @override
+  late final GeneratedColumn<String> merchant = GeneratedColumn<String>(
+    'merchant',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 100,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id)',
+    ),
+  );
+  static const VerificationMeta _useCountMeta = const VerificationMeta(
+    'useCount',
+  );
+  @override
+  late final GeneratedColumn<int> useCount = GeneratedColumn<int>(
+    'use_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, merchant, categoryId, useCount];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'merchant_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MerchantRule> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('merchant')) {
+      context.handle(
+        _merchantMeta,
+        merchant.isAcceptableOrUnknown(data['merchant']!, _merchantMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('use_count')) {
+      context.handle(
+        _useCountMeta,
+        useCount.isAcceptableOrUnknown(data['use_count']!, _useCountMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MerchantRule map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MerchantRule(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      merchant: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      useCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}use_count'],
+      )!,
+    );
+  }
+
+  @override
+  $MerchantRulesTable createAlias(String alias) {
+    return $MerchantRulesTable(attachedDatabase, alias);
+  }
+}
+
+class MerchantRule extends DataClass implements Insertable<MerchantRule> {
+  final int id;
+  final String merchant;
+  final int categoryId;
+  final int useCount;
+  const MerchantRule({
+    required this.id,
+    required this.merchant,
+    required this.categoryId,
+    required this.useCount,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['merchant'] = Variable<String>(merchant);
+    map['category_id'] = Variable<int>(categoryId);
+    map['use_count'] = Variable<int>(useCount);
+    return map;
+  }
+
+  MerchantRulesCompanion toCompanion(bool nullToAbsent) {
+    return MerchantRulesCompanion(
+      id: Value(id),
+      merchant: Value(merchant),
+      categoryId: Value(categoryId),
+      useCount: Value(useCount),
+    );
+  }
+
+  factory MerchantRule.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MerchantRule(
+      id: serializer.fromJson<int>(json['id']),
+      merchant: serializer.fromJson<String>(json['merchant']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      useCount: serializer.fromJson<int>(json['useCount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'merchant': serializer.toJson<String>(merchant),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'useCount': serializer.toJson<int>(useCount),
+    };
+  }
+
+  MerchantRule copyWith({
+    int? id,
+    String? merchant,
+    int? categoryId,
+    int? useCount,
+  }) => MerchantRule(
+    id: id ?? this.id,
+    merchant: merchant ?? this.merchant,
+    categoryId: categoryId ?? this.categoryId,
+    useCount: useCount ?? this.useCount,
+  );
+  MerchantRule copyWithCompanion(MerchantRulesCompanion data) {
+    return MerchantRule(
+      id: data.id.present ? data.id.value : this.id,
+      merchant: data.merchant.present ? data.merchant.value : this.merchant,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      useCount: data.useCount.present ? data.useCount.value : this.useCount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantRule(')
+          ..write('id: $id, ')
+          ..write('merchant: $merchant, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('useCount: $useCount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, merchant, categoryId, useCount);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MerchantRule &&
+          other.id == this.id &&
+          other.merchant == this.merchant &&
+          other.categoryId == this.categoryId &&
+          other.useCount == this.useCount);
+}
+
+class MerchantRulesCompanion extends UpdateCompanion<MerchantRule> {
+  final Value<int> id;
+  final Value<String> merchant;
+  final Value<int> categoryId;
+  final Value<int> useCount;
+  const MerchantRulesCompanion({
+    this.id = const Value.absent(),
+    this.merchant = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.useCount = const Value.absent(),
+  });
+  MerchantRulesCompanion.insert({
+    this.id = const Value.absent(),
+    required String merchant,
+    required int categoryId,
+    this.useCount = const Value.absent(),
+  }) : merchant = Value(merchant),
+       categoryId = Value(categoryId);
+  static Insertable<MerchantRule> custom({
+    Expression<int>? id,
+    Expression<String>? merchant,
+    Expression<int>? categoryId,
+    Expression<int>? useCount,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (merchant != null) 'merchant': merchant,
+      if (categoryId != null) 'category_id': categoryId,
+      if (useCount != null) 'use_count': useCount,
+    });
+  }
+
+  MerchantRulesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? merchant,
+    Value<int>? categoryId,
+    Value<int>? useCount,
+  }) {
+    return MerchantRulesCompanion(
+      id: id ?? this.id,
+      merchant: merchant ?? this.merchant,
+      categoryId: categoryId ?? this.categoryId,
+      useCount: useCount ?? this.useCount,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (merchant.present) {
+      map['merchant'] = Variable<String>(merchant.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (useCount.present) {
+      map['use_count'] = Variable<int>(useCount.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MerchantRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('merchant: $merchant, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('useCount: $useCount')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2010,6 +2318,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SavingsDepositsTable savingsDeposits = $SavingsDepositsTable(
     this,
   );
+  late final $MerchantRulesTable merchantRules = $MerchantRulesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2020,6 +2329,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     transactions,
     savingsGoals,
     savingsDeposits,
+    merchantRules,
   ];
 }
 
@@ -2356,6 +2666,24 @@ final class $$CategoriesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$MerchantRulesTable, List<MerchantRule>>
+  _merchantRulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.merchantRules,
+    aliasName: 'categories__id__merchant_rules__category_id',
+  );
+
+  $$MerchantRulesTableProcessedTableManager get merchantRulesRefs {
+    final manager = $$MerchantRulesTableTableManager(
+      $_db,
+      $_db.merchantRules,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_merchantRulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$CategoriesTableFilterComposer
@@ -2408,6 +2736,31 @@ class $$CategoriesTableFilterComposer
           }) => $$TransactionsTableFilterComposer(
             $db: $db,
             $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> merchantRulesRefs(
+    Expression<bool> Function($$MerchantRulesTableFilterComposer f) f,
+  ) {
+    final $$MerchantRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.merchantRules,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MerchantRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.merchantRules,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2501,6 +2854,31 @@ class $$CategoriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> merchantRulesRefs<T extends Object>(
+    Expression<T> Function($$MerchantRulesTableAnnotationComposer a) f,
+  ) {
+    final $$MerchantRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.merchantRules,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MerchantRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.merchantRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager
@@ -2516,7 +2894,10 @@ class $$CategoriesTableTableManager
           $$CategoriesTableUpdateCompanionBuilder,
           (Category, $$CategoriesTableReferences),
           Category,
-          PrefetchHooks Function({bool transactionsRefs})
+          PrefetchHooks Function({
+            bool transactionsRefs,
+            bool merchantRulesRefs,
+          })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
     : super(
@@ -2565,37 +2946,61 @@ class $$CategoriesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({transactionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (transactionsRefs) db.transactions],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (transactionsRefs)
-                    await $_getPrefetchedDataByColumns<
-                      Category,
-                      $CategoriesTable,
-                      TransactionRecord,
-                      $TransactionsTable
-                    >(
-                      currentTable: table,
-                      referencedTable: $$CategoriesTableReferences
-                          ._transactionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$CategoriesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).transactionsRefs,
-                      currentColumn: 'id',
-                      referencedColumn: 'category_id',
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({transactionsRefs = false, merchantRulesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (transactionsRefs) db.transactions,
+                    if (merchantRulesRefs) db.merchantRules,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (transactionsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Category,
+                          $CategoriesTable,
+                          TransactionRecord,
+                          $TransactionsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._transactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'category_id',
+                          typedResults: items,
+                        ),
+                      if (merchantRulesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Category,
+                          $CategoriesTable,
+                          MerchantRule,
+                          $MerchantRulesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._merchantRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).merchantRulesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'category_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2612,7 +3017,7 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (Category, $$CategoriesTableReferences),
       Category,
-      PrefetchHooks Function({bool transactionsRefs})
+      PrefetchHooks Function({bool transactionsRefs, bool merchantRulesRefs})
     >;
 typedef $$TransactionsTableCreateCompanionBuilder =
     TransactionsCompanion Function({
@@ -3733,6 +4138,302 @@ typedef $$SavingsDepositsTableProcessedTableManager =
       SavingsDeposit,
       PrefetchHooks Function({bool goalId})
     >;
+typedef $$MerchantRulesTableCreateCompanionBuilder =
+    MerchantRulesCompanion Function({
+      Value<int> id,
+      required String merchant,
+      required int categoryId,
+      Value<int> useCount,
+    });
+typedef $$MerchantRulesTableUpdateCompanionBuilder =
+    MerchantRulesCompanion Function({
+      Value<int> id,
+      Value<String> merchant,
+      Value<int> categoryId,
+      Value<int> useCount,
+    });
+
+final class $$MerchantRulesTableReferences
+    extends BaseReferences<_$AppDatabase, $MerchantRulesTable, MerchantRule> {
+  $$MerchantRulesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias('merchant_rules__category_id__categories__id');
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<int>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MerchantRulesTableFilterComposer
+    extends Composer<_$AppDatabase, $MerchantRulesTable> {
+  $$MerchantRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get useCount => $composableBuilder(
+    column: $table.useCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MerchantRulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MerchantRulesTable> {
+  $$MerchantRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get useCount => $composableBuilder(
+    column: $table.useCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MerchantRulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MerchantRulesTable> {
+  $$MerchantRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get merchant =>
+      $composableBuilder(column: $table.merchant, builder: (column) => column);
+
+  GeneratedColumn<int> get useCount =>
+      $composableBuilder(column: $table.useCount, builder: (column) => column);
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MerchantRulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MerchantRulesTable,
+          MerchantRule,
+          $$MerchantRulesTableFilterComposer,
+          $$MerchantRulesTableOrderingComposer,
+          $$MerchantRulesTableAnnotationComposer,
+          $$MerchantRulesTableCreateCompanionBuilder,
+          $$MerchantRulesTableUpdateCompanionBuilder,
+          (MerchantRule, $$MerchantRulesTableReferences),
+          MerchantRule,
+          PrefetchHooks Function({bool categoryId})
+        > {
+  $$MerchantRulesTableTableManager(_$AppDatabase db, $MerchantRulesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MerchantRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MerchantRulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MerchantRulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> merchant = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<int> useCount = const Value.absent(),
+              }) => MerchantRulesCompanion(
+                id: id,
+                merchant: merchant,
+                categoryId: categoryId,
+                useCount: useCount,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String merchant,
+                required int categoryId,
+                Value<int> useCount = const Value.absent(),
+              }) => MerchantRulesCompanion.insert(
+                id: id,
+                merchant: merchant,
+                categoryId: categoryId,
+                useCount: useCount,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MerchantRulesTable, MerchantRule>(table),
+                  $$MerchantRulesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (categoryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.categoryId,
+                                referencedTable: $$MerchantRulesTableReferences
+                                    ._categoryIdTable(db),
+                                referencedColumn: $$MerchantRulesTableReferences
+                                    ._categoryIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MerchantRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MerchantRulesTable,
+      MerchantRule,
+      $$MerchantRulesTableFilterComposer,
+      $$MerchantRulesTableOrderingComposer,
+      $$MerchantRulesTableAnnotationComposer,
+      $$MerchantRulesTableCreateCompanionBuilder,
+      $$MerchantRulesTableUpdateCompanionBuilder,
+      (MerchantRule, $$MerchantRulesTableReferences),
+      MerchantRule,
+      PrefetchHooks Function({bool categoryId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3747,4 +4448,6 @@ class $AppDatabaseManager {
       $$SavingsGoalsTableTableManager(_db, _db.savingsGoals);
   $$SavingsDepositsTableTableManager get savingsDeposits =>
       $$SavingsDepositsTableTableManager(_db, _db.savingsDeposits);
+  $$MerchantRulesTableTableManager get merchantRules =>
+      $$MerchantRulesTableTableManager(_db, _db.merchantRules);
 }

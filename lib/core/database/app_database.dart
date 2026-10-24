@@ -62,6 +62,14 @@ class SavingsDeposits extends Table {
       dateTime().withDefault(currentDateAndTime)();
 }
 
+@DataClassName('MerchantRule')
+class MerchantRules extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get merchant => text().withLength(min: 1, max: 100).unique()();
+  IntColumn get categoryId => integer().references(Categories, #id)();
+  IntColumn get useCount => integer().withDefault(const Constant(0))();
+}
+
 @DriftDatabase(
   tables: <Type>[
     Wallets,
@@ -69,13 +77,14 @@ class SavingsDeposits extends Table {
     Transactions,
     SavingsGoals,
     SavingsDeposits,
+    MerchantRules,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'simpen_woi'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +95,9 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             await migrator.createTable(savingsGoals);
             await migrator.createTable(savingsDeposits);
+          }
+          if (from < 3) {
+            await migrator.createTable(merchantRules);
           }
         },
         beforeOpen: (OpeningDetails details) async {

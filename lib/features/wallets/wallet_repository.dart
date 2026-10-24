@@ -8,4 +8,8 @@ class WalletRepository {
   Stream<List<Wallet>> watchAll() {
     return _database.select(_database.wallets).watch();
   }
+
+  Future<List<Wallet>> getAll() {
+    return _database.select(_database.wallets).get();
+  }
 }

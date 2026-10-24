@@ -9,6 +9,7 @@ import '../../core/parser/transaction_parser.dart';
 import '../../core/transaction_values.dart';
 import '../../core/utils/currency.dart';
 import '../../core/utils/currency_input_formatter.dart';
+import '../capture/capture_sync_service.dart';
 import '../wallets/wallet_providers.dart';
 import '../transactions/transaction_providers.dart';
 import '../transactions/transaction_repository.dart';
@@ -28,6 +29,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     final AsyncValue<List<Wallet>> walletsAsync = ref.watch(walletsProvider);
     final AsyncValue<List<TransactionDetail>> todayAsync =
         ref.watch(todayTransactionsProvider);
+    final AsyncValue<List<TransactionDetail>> uncategorizedAsync =
+        ref.watch(uncategorizedTransactionsProvider);
+    final int uncategorizedCount = uncategorizedAsync.value?.length ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,6 +48,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         children: <Widget>[
           _buildBalanceCard(context, walletsAsync),
+          if (uncategorizedCount > 0) ...<Widget>[
+            const SizedBox(height: 16),
+            _buildUncategorizedBanner(context, uncategorizedCount),
+          ],
           const SizedBox(height: 16),
           _buildSummaryRow(context, todayAsync),
           const SizedBox(height: 24),
@@ -97,6 +105,33 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildUncategorizedBanner(BuildContext context, int count) {
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: scheme.secondaryContainer,
+      child: ListTile(
+        leading: Icon(
+          Icons.playlist_add_check,
+          color: scheme.onSecondaryContainer,
+        ),
+        title: Text(
+          '$count transaksi perlu dilengkapi',
+          style: TextStyle(
+            color: scheme.onSecondaryContainer,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Text(
+          'Ketuk untuk memilih kategori.',
+          style: TextStyle(color: scheme.onSecondaryContainer),
+        ),
+        trailing: Icon(Icons.chevron_right, color: scheme.onSecondaryContainer),
+        onTap: () => context.push('/uncategorized'),
       ),
     );
   }
@@ -881,6 +916,13 @@ class _TransactionEditorSheetState
           note: note.isEmpty ? null : note,
           merchant: merchant.isEmpty ? null : merchant,
         );
+
+    final int? categoryId = _categoryId;
+    if (categoryId != null) {
+      await ref
+          .read(captureSyncServiceProvider)
+          .recordMerchantUsage(merchant.isEmpty ? null : merchant, categoryId);
+    }
 
     if (mounted) {
       Navigator.of(context).pop();
