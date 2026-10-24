@@ -1,4 +1,4 @@
-package com.drena.simpen_woi
+package com.drena.simpen_woi.capture.parser
 
 object SupportedApps {
     val packages: Set<String> = setOf(

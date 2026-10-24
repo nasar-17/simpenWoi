@@ -1,7 +1,9 @@
-package com.drena.simpen_woi
+package com.drena.simpen_woi.capture.prefs
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.drena.simpen_woi.capture.queue.CaptureCategory
+import com.drena.simpen_woi.capture.queue.MerchantRule
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

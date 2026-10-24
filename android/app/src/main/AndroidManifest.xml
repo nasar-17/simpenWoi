@@ -32,7 +32,7 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <service
-            android:name=".NotificationCaptureService"
+            android:name=".capture.NotificationCaptureService"
             android:exported="false"
             android:label="simpenWoi notification capture"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
@@ -41,7 +41,7 @@
             </intent-filter>
         </service>
         <receiver
-            android:name=".CaptureActionReceiver"
+            android:name=".capture.notify.CaptureActionReceiver"
             android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:

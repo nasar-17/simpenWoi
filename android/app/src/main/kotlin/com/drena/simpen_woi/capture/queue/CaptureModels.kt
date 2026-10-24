@@ -1,4 +1,4 @@
-package com.drena.simpen_woi
+package com.drena.simpen_woi.capture.queue
 
 data class PendingCapture(
     val id: Long,

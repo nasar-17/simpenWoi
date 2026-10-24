@@ -1,8 +1,15 @@
-package com.drena.simpen_woi
+package com.drena.simpen_woi.capture
 
 import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import com.drena.simpen_woi.capture.notify.CaptureNotifier
+import com.drena.simpen_woi.capture.parser.CaptureParser
+import com.drena.simpen_woi.capture.parser.SupportedApps
+import com.drena.simpen_woi.capture.prefs.CapturePreferences
+import com.drena.simpen_woi.capture.queue.CaptureExecutor
+import com.drena.simpen_woi.capture.queue.CaptureQueue
+import com.drena.simpen_woi.capture.queue.PendingCapture
 
 class NotificationCaptureService : NotificationListenerService() {
     companion object {
@@ -10,9 +17,11 @@ class NotificationCaptureService : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        try {
-            handle(sbn)
-        } catch (_: Exception) {
+        CaptureExecutor.execute {
+            try {
+                handle(sbn)
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -30,7 +39,7 @@ class NotificationCaptureService : NotificationListenerService() {
         val parsed = CaptureParser.parse(sourcePackage, title, text, bigText) ?: return
         if (CapturePreferences.shouldIgnoreNotificationKey(this, sbn.key ?: return)) return
 
-        val queue = CaptureQueue(this)
+        val queue = CaptureQueue.getInstance(this)
         if (queue.hasRecentAmount(parsed.amount, sourcePackage, AMOUNT_DEDUPE_WINDOW_MS)) return
 
         val postedAt = if (sbn.postTime > 0L) sbn.postTime else System.currentTimeMillis()
