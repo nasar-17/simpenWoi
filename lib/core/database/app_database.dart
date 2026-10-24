@@ -36,6 +36,7 @@ class Transactions extends Table {
   TextColumn get note => text().nullable()();
   TextColumn get merchant => text().nullable()();
   TextColumn get source => text().withDefault(const Constant('manual'))();
+  IntColumn get nativeCaptureId => integer().nullable()();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isCategorized =>
@@ -84,7 +85,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'simpen_woi'));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,6 +99,9 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await migrator.createTable(merchantRules);
+          }
+          if (from < 4) {
+            await migrator.addColumn(transactions, transactions.nativeCaptureId);
           }
         },
         beforeOpen: (OpeningDetails details) async {

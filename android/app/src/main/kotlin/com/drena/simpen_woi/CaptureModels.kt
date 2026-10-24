@@ -26,12 +26,24 @@ data class ParsedCapture(
     val merchant: String?,
 )
 
+data class DirtyCapture(
+    val id: Long,
+    val categoryId: Int?,
+    val note: String?,
+)
+
 fun PendingCapture.toMap(): Map<String, Any?> = mapOf(
     "id" to id,
     "amount" to amount,
     "merchant" to merchant,
     "source_package" to sourcePackage,
     "posted_at" to postedAt,
+    "category_id" to categoryId,
+    "note" to note,
+)
+
+fun DirtyCapture.toMap(): Map<String, Any?> = mapOf(
+    "id" to id,
     "category_id" to categoryId,
     "note" to note,
 )

@@ -83,6 +83,7 @@ class TransactionRepository {
     String? merchant,
     String source = TransactionSource.manual,
     DateTime? createdAt,
+    int? nativeCaptureId,
   }) {
     return _database.transaction(() async {
       final int id = await _database.into(_database.transactions).insert(
@@ -96,6 +97,7 @@ class TransactionRepository {
               source: Value<String>(source),
               createdAt: Value<DateTime>(createdAt ?? DateTime.now()),
               isCategorized: Value<bool>(categoryId != null),
+              nativeCaptureId: Value<int?>(nativeCaptureId),
             ),
           );
       await _adjustWalletBalance(
@@ -104,6 +106,17 @@ class TransactionRepository {
       );
       return id;
     });
+  }
+
+  Future<TransactionRecord?> getByNativeCaptureId(int nativeCaptureId) async {
+    final List<TransactionRecord> records =
+        await (_database.select(_database.transactions)
+              ..where(
+                (table) => table.nativeCaptureId.equals(nativeCaptureId),
+              )
+              ..limit(1))
+            .get();
+    return records.isEmpty ? null : records.first;
   }
 
   Future<void> updateTransaction({

@@ -24,6 +24,17 @@ class MainActivity : FlutterActivity() {
                         result.success(CaptureQueue(this).getPending().map { it.toMap() })
                     }
 
+                    "getDirtyCaptures" -> {
+                        result.success(CaptureQueue(this).getDirtyCaptures().map { it.toMap() })
+                    }
+
+                    "markSynced" -> {
+                        val ids = (call.argument<List<*>>("ids") ?: emptyList<Any>())
+                            .mapNotNull { (it as? Number)?.toLong() }
+                        CaptureQueue(this).markSynced(ids)
+                        result.success(null)
+                    }
+
                     "markImported" -> {
                         val ids = (call.argument<List<*>>("ids") ?: emptyList<Any>())
                             .mapNotNull { (it as? Number)?.toLong() }

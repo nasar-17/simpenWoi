@@ -28,6 +28,7 @@ class CaptureSyncService {
     try {
       await pushLocalContext();
       await _importPending();
+      await _syncDirtyCaptures();
     } finally {
       _syncing = false;
     }
@@ -140,6 +141,7 @@ class CaptureSyncService {
         merchant: capture.merchant,
         source: TransactionSource.notification,
         createdAt: capture.postedAt,
+        nativeCaptureId: capture.id,
       );
 
       if (categoryId != null && capture.categoryId != null) {
@@ -158,6 +160,93 @@ class CaptureSyncService {
     if (rulesChanged) {
       await pushLocalContext();
     }
+  }
+
+  Future<void> _syncDirtyCaptures() async {
+    final NativeCaptureBridge bridge = _ref.read(nativeCaptureBridgeProvider);
+    final List<DirtyNativeCapture> dirtyCaptures =
+        await bridge.getDirtyCaptures();
+    if (dirtyCaptures.isEmpty) {
+      return;
+    }
+
+    final List<Category> categories =
+        await _ref.read(transactionRepositoryProvider).getCategories();
+    final TransactionRepository repository =
+        _ref.read(transactionRepositoryProvider);
+    bool rulesChanged = false;
+
+    for (final DirtyNativeCapture dirty in dirtyCaptures) {
+      final TransactionRecord? record =
+          await repository.getByNativeCaptureId(dirty.id);
+      if (record == null) {
+        await bridge.markSynced(<int>[dirty.id]);
+        continue;
+      }
+
+      final int? categoryId =
+          _resolveDirtyCategory(dirty, record, categories);
+      final String? note = dirty.note;
+      if (categoryId != record.categoryId || note != record.note) {
+        await repository.updateTransaction(
+          id: record.id,
+          amount: record.amount,
+          type: record.type,
+          walletId: record.walletId,
+          categoryId: categoryId,
+          note: note,
+          merchant: record.merchant,
+        );
+
+        final String? merchant = record.merchant?.trim();
+        if (categoryId != null &&
+            categoryId != record.categoryId &&
+            merchant != null &&
+            merchant.isNotEmpty) {
+          await _ref
+              .read(merchantRuleRepositoryProvider)
+              .recordUsage(merchant, categoryId);
+          rulesChanged = true;
+        }
+      }
+
+      await bridge.markSynced(<int>[dirty.id]);
+    }
+
+    if (rulesChanged) {
+      await pushLocalContext();
+    }
+  }
+
+  int? _resolveDirtyCategory(
+    DirtyNativeCapture dirty,
+    TransactionRecord record,
+    List<Category> categories,
+  ) {
+    final int? queuedCategoryId = dirty.categoryId;
+    if (queuedCategoryId != null &&
+        categories.any(
+          (Category category) =>
+              category.id == queuedCategoryId &&
+              category.type == TransactionType.expense,
+        )) {
+      return queuedCategoryId;
+    }
+
+    final String? note = dirty.note?.trim();
+    if (note != null && note.isNotEmpty) {
+      final int? parsedCategoryId = _parser.parse(note).categoryId;
+      if (parsedCategoryId != null &&
+          categories.any(
+            (Category category) =>
+                category.id == parsedCategoryId &&
+                category.type == TransactionType.expense,
+          )) {
+        return parsedCategoryId;
+      }
+    }
+
+    return record.categoryId;
   }
 
   int? _resolveCategory(NativeCapture capture, List<Category> categories) {

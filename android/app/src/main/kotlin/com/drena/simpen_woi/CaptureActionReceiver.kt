@@ -30,6 +30,7 @@ class CaptureActionReceiver : BroadcastReceiver() {
         val categoryName = intent.getStringExtra(CaptureNotifier.EXTRA_CATEGORY_NAME)
             ?: "Kategori"
         queue.updateCategory(capture.id, categoryId)
+        queue.markDirtyIfImported(capture.id)
         CaptureNotifier(context).showSaved(capture.copy(categoryId = categoryId), categoryName)
         CaptureNotifier(context).showSummary(queue.countUnanswered())
     }
@@ -46,6 +47,7 @@ class CaptureActionReceiver : BroadcastReceiver() {
             ?.trim()
         if (reply.isNullOrEmpty()) return
         queue.updateNote(capture.id, reply)
+        queue.markDirtyIfImported(capture.id)
         CaptureNotifier(context).showSaved(capture.copy(note = reply), "Catatan: $reply")
         CaptureNotifier(context).showSummary(queue.countUnanswered())
     }

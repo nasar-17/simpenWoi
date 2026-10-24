@@ -787,6 +787,17 @@ class $TransactionsTable extends Transactions
     requiredDuringInsert: false,
     defaultValue: const Constant('manual'),
   );
+  static const VerificationMeta _nativeCaptureIdMeta = const VerificationMeta(
+    'nativeCaptureId',
+  );
+  @override
+  late final GeneratedColumn<int> nativeCaptureId = GeneratedColumn<int>(
+    'native_capture_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -824,6 +835,7 @@ class $TransactionsTable extends Transactions
     note,
     merchant,
     source,
+    nativeCaptureId,
     createdAt,
     isCategorized,
   ];
@@ -890,6 +902,15 @@ class $TransactionsTable extends Transactions
         source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
       );
     }
+    if (data.containsKey('native_capture_id')) {
+      context.handle(
+        _nativeCaptureIdMeta,
+        nativeCaptureId.isAcceptableOrUnknown(
+          data['native_capture_id']!,
+          _nativeCaptureIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -946,6 +967,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}source'],
       )!,
+      nativeCaptureId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}native_capture_id'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -973,6 +998,7 @@ class TransactionRecord extends DataClass
   final String? note;
   final String? merchant;
   final String source;
+  final int? nativeCaptureId;
   final DateTime createdAt;
   final bool isCategorized;
   const TransactionRecord({
@@ -984,6 +1010,7 @@ class TransactionRecord extends DataClass
     this.note,
     this.merchant,
     required this.source,
+    this.nativeCaptureId,
     required this.createdAt,
     required this.isCategorized,
   });
@@ -1004,6 +1031,9 @@ class TransactionRecord extends DataClass
       map['merchant'] = Variable<String>(merchant);
     }
     map['source'] = Variable<String>(source);
+    if (!nullToAbsent || nativeCaptureId != null) {
+      map['native_capture_id'] = Variable<int>(nativeCaptureId);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['is_categorized'] = Variable<bool>(isCategorized);
     return map;
@@ -1023,6 +1053,9 @@ class TransactionRecord extends DataClass
           ? const Value.absent()
           : Value(merchant),
       source: Value(source),
+      nativeCaptureId: nativeCaptureId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nativeCaptureId),
       createdAt: Value(createdAt),
       isCategorized: Value(isCategorized),
     );
@@ -1042,6 +1075,7 @@ class TransactionRecord extends DataClass
       note: serializer.fromJson<String?>(json['note']),
       merchant: serializer.fromJson<String?>(json['merchant']),
       source: serializer.fromJson<String>(json['source']),
+      nativeCaptureId: serializer.fromJson<int?>(json['nativeCaptureId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       isCategorized: serializer.fromJson<bool>(json['isCategorized']),
     );
@@ -1058,6 +1092,7 @@ class TransactionRecord extends DataClass
       'note': serializer.toJson<String?>(note),
       'merchant': serializer.toJson<String?>(merchant),
       'source': serializer.toJson<String>(source),
+      'nativeCaptureId': serializer.toJson<int?>(nativeCaptureId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'isCategorized': serializer.toJson<bool>(isCategorized),
     };
@@ -1072,6 +1107,7 @@ class TransactionRecord extends DataClass
     Value<String?> note = const Value.absent(),
     Value<String?> merchant = const Value.absent(),
     String? source,
+    Value<int?> nativeCaptureId = const Value.absent(),
     DateTime? createdAt,
     bool? isCategorized,
   }) => TransactionRecord(
@@ -1083,6 +1119,9 @@ class TransactionRecord extends DataClass
     note: note.present ? note.value : this.note,
     merchant: merchant.present ? merchant.value : this.merchant,
     source: source ?? this.source,
+    nativeCaptureId: nativeCaptureId.present
+        ? nativeCaptureId.value
+        : this.nativeCaptureId,
     createdAt: createdAt ?? this.createdAt,
     isCategorized: isCategorized ?? this.isCategorized,
   );
@@ -1098,6 +1137,9 @@ class TransactionRecord extends DataClass
       note: data.note.present ? data.note.value : this.note,
       merchant: data.merchant.present ? data.merchant.value : this.merchant,
       source: data.source.present ? data.source.value : this.source,
+      nativeCaptureId: data.nativeCaptureId.present
+          ? data.nativeCaptureId.value
+          : this.nativeCaptureId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       isCategorized: data.isCategorized.present
           ? data.isCategorized.value
@@ -1116,6 +1158,7 @@ class TransactionRecord extends DataClass
           ..write('note: $note, ')
           ..write('merchant: $merchant, ')
           ..write('source: $source, ')
+          ..write('nativeCaptureId: $nativeCaptureId, ')
           ..write('createdAt: $createdAt, ')
           ..write('isCategorized: $isCategorized')
           ..write(')'))
@@ -1132,6 +1175,7 @@ class TransactionRecord extends DataClass
     note,
     merchant,
     source,
+    nativeCaptureId,
     createdAt,
     isCategorized,
   );
@@ -1147,6 +1191,7 @@ class TransactionRecord extends DataClass
           other.note == this.note &&
           other.merchant == this.merchant &&
           other.source == this.source &&
+          other.nativeCaptureId == this.nativeCaptureId &&
           other.createdAt == this.createdAt &&
           other.isCategorized == this.isCategorized);
 }
@@ -1160,6 +1205,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
   final Value<String?> note;
   final Value<String?> merchant;
   final Value<String> source;
+  final Value<int?> nativeCaptureId;
   final Value<DateTime> createdAt;
   final Value<bool> isCategorized;
   const TransactionsCompanion({
@@ -1171,6 +1217,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
     this.note = const Value.absent(),
     this.merchant = const Value.absent(),
     this.source = const Value.absent(),
+    this.nativeCaptureId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.isCategorized = const Value.absent(),
   });
@@ -1183,6 +1230,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
     this.note = const Value.absent(),
     this.merchant = const Value.absent(),
     this.source = const Value.absent(),
+    this.nativeCaptureId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.isCategorized = const Value.absent(),
   }) : amount = Value(amount),
@@ -1197,6 +1245,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
     Expression<String>? note,
     Expression<String>? merchant,
     Expression<String>? source,
+    Expression<int>? nativeCaptureId,
     Expression<DateTime>? createdAt,
     Expression<bool>? isCategorized,
   }) {
@@ -1209,6 +1258,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
       if (note != null) 'note': note,
       if (merchant != null) 'merchant': merchant,
       if (source != null) 'source': source,
+      if (nativeCaptureId != null) 'native_capture_id': nativeCaptureId,
       if (createdAt != null) 'created_at': createdAt,
       if (isCategorized != null) 'is_categorized': isCategorized,
     });
@@ -1223,6 +1273,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
     Value<String?>? note,
     Value<String?>? merchant,
     Value<String>? source,
+    Value<int?>? nativeCaptureId,
     Value<DateTime>? createdAt,
     Value<bool>? isCategorized,
   }) {
@@ -1235,6 +1286,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
       note: note ?? this.note,
       merchant: merchant ?? this.merchant,
       source: source ?? this.source,
+      nativeCaptureId: nativeCaptureId ?? this.nativeCaptureId,
       createdAt: createdAt ?? this.createdAt,
       isCategorized: isCategorized ?? this.isCategorized,
     );
@@ -1267,6 +1319,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
     if (source.present) {
       map['source'] = Variable<String>(source.value);
     }
+    if (nativeCaptureId.present) {
+      map['native_capture_id'] = Variable<int>(nativeCaptureId.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1287,6 +1342,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRecord> {
           ..write('note: $note, ')
           ..write('merchant: $merchant, ')
           ..write('source: $source, ')
+          ..write('nativeCaptureId: $nativeCaptureId, ')
           ..write('createdAt: $createdAt, ')
           ..write('isCategorized: $isCategorized')
           ..write(')'))
@@ -3029,6 +3085,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<String?> note,
       Value<String?> merchant,
       Value<String> source,
+      Value<int?> nativeCaptureId,
       Value<DateTime> createdAt,
       Value<bool> isCategorized,
     });
@@ -3042,6 +3099,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String?> note,
       Value<String?> merchant,
       Value<String> source,
+      Value<int?> nativeCaptureId,
       Value<DateTime> createdAt,
       Value<bool> isCategorized,
     });
@@ -3122,6 +3180,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get source => $composableBuilder(
     column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nativeCaptureId => $composableBuilder(
+    column: $table.nativeCaptureId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3221,6 +3284,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get nativeCaptureId => $composableBuilder(
+    column: $table.nativeCaptureId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -3304,6 +3372,11 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get source =>
       $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<int> get nativeCaptureId => $composableBuilder(
+    column: $table.nativeCaptureId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -3396,6 +3469,7 @@ class $$TransactionsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String?> merchant = const Value.absent(),
                 Value<String> source = const Value.absent(),
+                Value<int?> nativeCaptureId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> isCategorized = const Value.absent(),
               }) => TransactionsCompanion(
@@ -3407,6 +3481,7 @@ class $$TransactionsTableTableManager
                 note: note,
                 merchant: merchant,
                 source: source,
+                nativeCaptureId: nativeCaptureId,
                 createdAt: createdAt,
                 isCategorized: isCategorized,
               ),
@@ -3420,6 +3495,7 @@ class $$TransactionsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<String?> merchant = const Value.absent(),
                 Value<String> source = const Value.absent(),
+                Value<int?> nativeCaptureId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<bool> isCategorized = const Value.absent(),
               }) => TransactionsCompanion.insert(
@@ -3431,6 +3507,7 @@ class $$TransactionsTableTableManager
                 note: note,
                 merchant: merchant,
                 source: source,
+                nativeCaptureId: nativeCaptureId,
                 createdAt: createdAt,
                 isCategorized: isCategorized,
               ),

@@ -35,6 +35,26 @@ class NativeCapture {
   final String? note;
 }
 
+class DirtyNativeCapture {
+  const DirtyNativeCapture({
+    required this.id,
+    required this.categoryId,
+    required this.note,
+  });
+
+  factory DirtyNativeCapture.fromMap(Map<Object?, Object?> map) {
+    return DirtyNativeCapture(
+      id: (map['id'] as num?)?.toInt() ?? 0,
+      categoryId: (map['category_id'] as num?)?.toInt(),
+      note: map['note'] as String?,
+    );
+  }
+
+  final int id;
+  final int? categoryId;
+  final String? note;
+}
+
 class NativeCaptureBridge {
   const NativeCaptureBridge();
 
@@ -58,6 +78,28 @@ class NativeCaptureBridge {
     }
     await _channel.invokeMethod<void>(
       'markImported',
+      <String, Object?>{'ids': ids},
+    );
+  }
+
+  Future<List<DirtyNativeCapture>> getDirtyCaptures() async {
+    final List<Object?>? raw =
+        await _channel.invokeMethod<List<Object?>>('getDirtyCaptures');
+    if (raw == null) {
+      return <DirtyNativeCapture>[];
+    }
+    return raw
+        .whereType<Map<Object?, Object?>>()
+        .map(DirtyNativeCapture.fromMap)
+        .toList(growable: false);
+  }
+
+  Future<void> markSynced(List<int> ids) async {
+    if (ids.isEmpty) {
+      return;
+    }
+    await _channel.invokeMethod<void>(
+      'markSynced',
       <String, Object?>{'ids': ids},
     );
   }

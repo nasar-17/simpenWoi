@@ -13,7 +13,7 @@ class CaptureQueue(context: Context) : SQLiteOpenHelper(
 ) {
     companion object {
         private const val DATABASE_NAME = "capture_queue.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         private const val TABLE = "pending_captures"
         const val STATUS_PENDING = "pending"
         const val STATUS_IMPORTED = "imported"
@@ -39,7 +39,8 @@ class CaptureQueue(context: Context) : SQLiteOpenHelper(
                 posted_at INTEGER NOT NULL,
                 category_id INTEGER,
                 note TEXT,
-                status TEXT NOT NULL DEFAULT '$STATUS_PENDING'
+                status TEXT NOT NULL DEFAULT '$STATUS_PENDING',
+                dirty INTEGER NOT NULL DEFAULT 0
             )
             """.trimIndent(),
         )
@@ -47,7 +48,11 @@ class CaptureQueue(context: Context) : SQLiteOpenHelper(
         db.execSQL("CREATE INDEX idx_pending_posted_at ON $TABLE (posted_at)")
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE $TABLE ADD COLUMN dirty INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 
     fun insertCapture(
         amount: Long,
@@ -139,6 +144,52 @@ class CaptureQueue(context: Context) : SQLiteOpenHelper(
     fun updateNote(id: Long, note: String) {
         val values = ContentValues().apply { put("note", note) }
         writableDatabase.update(TABLE, values, "id = ?", arrayOf(id.toString()))
+    }
+
+    fun markDirtyIfImported(id: Long) {
+        val values = ContentValues().apply { put("dirty", 1) }
+        writableDatabase.update(
+            TABLE,
+            values,
+            "id = ? AND status = ?",
+            arrayOf(id.toString(), STATUS_IMPORTED),
+        )
+    }
+
+    fun getDirtyCaptures(): List<DirtyCapture> {
+        val captures = mutableListOf<DirtyCapture>()
+        readableDatabase.query(
+            TABLE,
+            arrayOf("id", "category_id", "note"),
+            "dirty = 1",
+            null,
+            null,
+            null,
+            "posted_at ASC",
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                captures.add(
+                    DirtyCapture(
+                        id = cursor.getLong(0),
+                        categoryId = if (cursor.isNull(1)) null else cursor.getInt(1),
+                        note = if (cursor.isNull(2)) null else cursor.getString(2),
+                    ),
+                )
+            }
+        }
+        return captures
+    }
+
+    fun markSynced(ids: List<Long>) {
+        if (ids.isEmpty()) return
+        val placeholders = ids.joinToString(",") { "?" }
+        val values = ContentValues().apply { put("dirty", 0) }
+        writableDatabase.update(
+            TABLE,
+            values,
+            "id IN ($placeholders)",
+            ids.map { it.toString() }.toTypedArray(),
+        )
     }
 
     fun clearAnswer(id: Long) {
