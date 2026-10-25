@@ -11,6 +11,7 @@ class CaptureQueue private constructor(context: Context) {
         merchant: String?,
         sourcePackage: String,
         postedAt: Long,
+        direction: String,
         categoryId: Int?,
     ): Long {
         val values = ContentValues().apply {
@@ -18,6 +19,7 @@ class CaptureQueue private constructor(context: Context) {
             put("merchant", merchant)
             put("source_package", sourcePackage)
             put("posted_at", postedAt)
+            put("direction", direction)
             if (categoryId != null) put("category_id", categoryId) else putNull("category_id")
             put("status", CaptureQueueSchema.STATUS_PENDING)
         }
@@ -142,13 +144,24 @@ class CaptureQueue private constructor(context: Context) {
         )
     }
 
-    fun hasRecentAmount(amount: Long, sourcePackage: String, windowMillis: Long): Boolean {
-        val since = System.currentTimeMillis() - windowMillis
+    fun hasRecentAmount(
+        amount: Long,
+        direction: String,
+        sourcePackage: String,
+        postedAt: Long,
+        windowMillis: Long,
+    ): Boolean {
+        val since = postedAt - windowMillis
         return database.readableDatabase.query(
             CaptureQueueSchema.TABLE,
             arrayOf("id"),
-            "amount = ? AND source_package != ? AND posted_at >= ?",
-            arrayOf(amount.toString(), sourcePackage, since.toString()),
+            "amount = ? AND direction = ? AND source_package != ? AND posted_at >= ?",
+            arrayOf(
+                amount.toString(),
+                direction,
+                sourcePackage,
+                since.toString(),
+            ),
             null,
             null,
             null,

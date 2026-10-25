@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/transaction_values.dart';
 import '../../../../core/constants/ui_text.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency.dart';
@@ -98,7 +99,7 @@ class _TransactionEditorSheetState
           merchant: merchant.isEmpty ? null : merchant,
         );
 
-    if (categoryId != null) {
+    if (categoryId != null && _type == TransactionType.expense) {
       await ref
           .read(captureSyncServiceProvider)
           .recordMerchantUsage(merchant.isEmpty ? null : merchant, categoryId);

@@ -2,7 +2,7 @@ package com.drena.simpen_woi.capture.queue
 
 internal object CaptureQueueSchema {
     const val DATABASE_NAME = "capture_queue.db"
-    const val DATABASE_VERSION = 2
+    const val DATABASE_VERSION = 3
     const val TABLE = "pending_captures"
     const val STATUS_PENDING = "pending"
     const val STATUS_IMPORTED = "imported"
@@ -13,6 +13,7 @@ internal object CaptureQueueSchema {
         "merchant",
         "source_package",
         "posted_at",
+        "direction",
         "category_id",
         "note",
     )

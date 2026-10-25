@@ -10,6 +10,7 @@ object SupportedApps {
         "com.bca",
         "id.bmri.livin",
         "id.co.bri.brimo",
+        "id.co.bankbkemobile.digitalbank",
     )
 
     fun isSupported(packageName: String?): Boolean {

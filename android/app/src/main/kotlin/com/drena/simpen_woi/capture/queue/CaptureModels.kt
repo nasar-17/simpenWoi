@@ -6,6 +6,7 @@ data class PendingCapture(
     val merchant: String?,
     val sourcePackage: String,
     val postedAt: Long,
+    val direction: String,
     val categoryId: Int?,
     val note: String?,
 )
@@ -38,6 +39,7 @@ fun PendingCapture.toMap(): Map<String, Any?> = mapOf(
     "merchant" to merchant,
     "source_package" to sourcePackage,
     "posted_at" to postedAt,
+    "direction" to direction,
     "category_id" to categoryId,
     "note" to note,
 )

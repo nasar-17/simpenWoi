@@ -16,6 +16,7 @@ data class InspectorEntry(
     val text: String?,
     val bigText: String?,
     val result: String,
+    val direction: String?,
 )
 
 data class ListenerStatus(
@@ -62,6 +63,7 @@ object CaptureInspector {
                 text = nullableString(item, "text"),
                 bigText = nullableString(item, "big_text"),
                 result = item.optString("result", ""),
+                direction = nullableString(item, "direction"),
             )
         }
     }
@@ -92,10 +94,14 @@ object CaptureInspector {
         }
         return when (detection) {
             is CaptureDetection.Captured -> {
-                "Ditangkap (${detection.amount}, ${detection.merchant ?: "-"})"
+                "Ditangkap ${detection.direction.label} " +
+                    "(${detection.amount}, ${detection.merchant ?: "-"})"
             }
 
-            is CaptureDetection.Skipped -> "Dilewati: ${detection.reason.label}"
+            is CaptureDetection.Skipped -> {
+                val direction = detection.direction?.let { " ${it.label}" }.orEmpty()
+                "Dilewati$direction: ${detection.reason.label}"
+            }
         }
     }
 
@@ -124,6 +130,7 @@ object CaptureInspector {
             .put("text", entry.text ?: JSONObject.NULL)
             .put("big_text", entry.bigText ?: JSONObject.NULL)
             .put("result", entry.result)
+            .put("direction", entry.direction ?: JSONObject.NULL)
     }
 
     private fun nullableString(item: JSONObject, key: String): String? {
@@ -140,6 +147,7 @@ fun InspectorEntry.toInspectorMap(): Map<String, Any?> {
         "text" to text,
         "big_text" to bigText,
         "result" to result,
+        "direction" to direction,
     )
 }
 

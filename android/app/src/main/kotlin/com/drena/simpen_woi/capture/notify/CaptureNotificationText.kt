@@ -6,6 +6,8 @@ internal object CaptureNotificationText {
     const val CHANNEL_DESCRIPTION = "Catatan transaksi otomatis dari notifikasi e-wallet"
     const val QUESTION_TEXT = "Untuk apa?"
     const val QUESTION_BIG_TEXT = "Untuk apa? Ketuk kategori atau ketik catatan."
+    const val INCOMING_QUESTION = "Dari mana?"
+    const val INCOMING_BIG_TEXT = "Dari mana? Ketuk kategori pemasukan atau ketik catatan."
     const val REPLY_LABEL = "Catatan (mis. bakso 2 porsi)"
     const val SAVED_BODY = "Transaksi tercatat di simpenWoi."
     const val SUMMARY_BODY = "Buka simpenWoi untuk melengkapi kategori."
@@ -24,6 +26,11 @@ internal object CaptureNotificationText {
         }
     }
 
+    fun incomingTitle(capture: PendingCapture): String {
+        val sender = capture.merchant?.takeIf { it.isNotBlank() } ?: "pengirim"
+        return "${formatRupiah(capture.amount)} masuk dari $sender"
+    }
+
     fun savedTitle(capture: PendingCapture, categoryName: String): String {
         val merchantPart = capture.merchant
             ?.takeIf { it.isNotBlank() }
@@ -34,6 +41,14 @@ internal object CaptureNotificationText {
         }
         val suffix = if (label.isNotBlank()) " - $label" else ""
         return "Tersimpan: ${formatRupiah(capture.amount)}$merchantPart$suffix"
+    }
+
+    fun incomingSavedTitle(capture: PendingCapture, categoryName: String): String {
+        val label = categoryName.trim().ifBlank {
+            capture.note?.trim().orEmpty()
+        }
+        val suffix = if (label.isNotBlank()) " - $label" else ""
+        return "Tersimpan: ${incomingTitle(capture)}$suffix"
     }
 
     fun summaryTitle(count: Int): String = "$count transaksi belum dikategorikan"

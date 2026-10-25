@@ -1,3 +1,4 @@
+import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
 import '../../transactions/data/transaction_repository.dart';
 import 'capture_context_pusher.dart';
@@ -51,7 +52,9 @@ class CaptureSyncService {
       note: record.note,
       merchant: record.merchant,
     );
-    await recordMerchantUsage(record.merchant, categoryId);
+    if (record.type == TransactionType.expense) {
+      await recordMerchantUsage(record.merchant, categoryId);
+    }
   }
 
   Future<void> recordMerchantUsage(String? merchant, int categoryId) async {

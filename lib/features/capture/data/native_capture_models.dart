@@ -1,4 +1,5 @@
 import '../capture_constants.dart';
+import '../domain/capture_direction.dart';
 
 class NativeCapture {
   const NativeCapture({
@@ -7,6 +8,7 @@ class NativeCapture {
     required this.merchant,
     required this.sourcePackage,
     required this.postedAt,
+    required this.direction,
     required this.categoryId,
     required this.note,
   });
@@ -21,6 +23,8 @@ class NativeCapture {
       merchant: map[CaptureKeys.merchant] as String?,
       sourcePackage: map[CaptureKeys.sourcePackage] as String? ?? '',
       postedAt: DateTime.fromMillisecondsSinceEpoch(postedAt),
+      direction:
+          map[CaptureKeys.direction] as String? ?? CaptureDirection.outgoing,
       categoryId: (map[CaptureKeys.categoryId] as num?)?.toInt(),
       note: map[CaptureKeys.note] as String?,
     );
@@ -31,6 +35,7 @@ class NativeCapture {
   final String? merchant;
   final String sourcePackage;
   final DateTime postedAt;
+  final String direction;
   final int? categoryId;
   final String? note;
 }
@@ -43,6 +48,7 @@ class InspectorEntry {
     required this.text,
     required this.bigText,
     required this.result,
+    required this.direction,
   });
 
   factory InspectorEntry.fromMap(Map<Object?, Object?> map) {
@@ -54,6 +60,7 @@ class InspectorEntry {
       text: map[InspectorKeys.text] as String?,
       bigText: map[InspectorKeys.bigText] as String?,
       result: map[InspectorKeys.result] as String? ?? '',
+      direction: map[InspectorKeys.direction] as String?,
     );
   }
 
@@ -63,6 +70,7 @@ class InspectorEntry {
   final String? text;
   final String? bigText;
   final String result;
+  final String? direction;
 }
 
 class InspectorListenerStatus {

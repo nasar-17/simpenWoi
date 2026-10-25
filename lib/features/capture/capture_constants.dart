@@ -20,6 +20,8 @@ abstract final class CaptureChannel {
   static const String enabled = 'enabled';
   static const String categories = 'categories';
   static const String topCategories = 'top_categories';
+  static const String incomeCategories = 'income_categories';
+  static const String topIncomeCategories = 'top_income_categories';
   static const String rules = 'rules';
   static const String amount = 'amount';
   static const String merchant = 'merchant';
@@ -33,6 +35,7 @@ abstract final class CaptureKeys {
   static const String merchant = 'merchant';
   static const String sourcePackage = 'source_package';
   static const String postedAt = 'posted_at';
+  static const String direction = 'direction';
   static const String categoryId = 'category_id';
   static const String categoryName = 'category_name';
   static const String note = 'note';
@@ -46,6 +49,7 @@ abstract final class InspectorKeys {
   static const String text = 'text';
   static const String bigText = 'big_text';
   static const String result = 'result';
+  static const String direction = 'direction';
   static const String connected = 'connected';
   static const String updatedAt = 'updated_at';
   static const String inspectorEnabled = 'inspector_enabled';

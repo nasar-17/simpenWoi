@@ -59,11 +59,15 @@ class NativeCaptureBridge {
   Future<void> pushCategories({
     required List<Map<String, Object?>> categories,
     required List<Map<String, Object?>> topCategories,
+    required List<Map<String, Object?>> incomeCategories,
+    required List<Map<String, Object?>> topIncomeCategories,
   }) async {
     await _channel
         .invokeMethod<void>(CaptureChannel.pushCategories, <String, Object?>{
           CaptureChannel.categories: categories,
           CaptureChannel.topCategories: topCategories,
+          CaptureChannel.incomeCategories: incomeCategories,
+          CaptureChannel.topIncomeCategories: topIncomeCategories,
         });
   }
 

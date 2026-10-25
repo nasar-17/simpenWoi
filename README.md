@@ -70,7 +70,7 @@ kembali, antrean diimpor menjadi transaksi. Aturan merchant dipakai setelah
 kategori yang sama dipilih minimal dua kali.
 
 Daftar paket yang dipantau saat ini: GoPay/Gojek, OVO, DANA, ShopeePay,
-LinkAja, BCA mobile, Livin' by Mandiri, dan BRImo. Nama paket dapat berubah
+LinkAja, BCA mobile, Livin' by Mandiri, BRImo, dan SeaBank. Nama paket dapat berubah
 antar versi aplikasi; verifikasi di perangkat sebelum mengandalkan fitur ini.
 
 Pada build debug, **Pengaturan > Notifikasi Otomatis** menyediakan tombol

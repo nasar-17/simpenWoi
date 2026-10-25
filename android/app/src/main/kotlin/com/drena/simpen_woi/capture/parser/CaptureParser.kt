@@ -3,6 +3,9 @@ package com.drena.simpen_woi.capture.parser
 import com.drena.simpen_woi.capture.queue.ParsedCapture
 
 object CaptureParser {
+    private const val DANA_PACKAGE = "id.dana"
+    private const val SEA_BANK_PACKAGE = "id.co.bankbkemobile.digitalbank"
+
     fun detect(
         packageName: String,
         title: String?,
@@ -13,10 +16,13 @@ object CaptureParser {
             return CaptureDetection.Skipped(CaptureSkipReason.PACKAGE_NOT_WHITELISTED)
         }
 
-        val combined = listOfNotNull(title, text, bigText)
-            .joinToString(" ")
-            .replace(Regex("\\s+"), " ")
-            .trim()
+        val content = normalize(listOfNotNull(text, bigText))
+        when (packageName) {
+            DANA_PACKAGE -> DanaCaptureParser.detect(content)?.let { return it }
+            SEA_BANK_PACKAGE -> SeaBankCaptureParser.detect(title, content)?.let { return it }
+        }
+
+        val combined = normalize(listOfNotNull(title, text, bigText))
         if (combined.isEmpty()) {
             return CaptureDetection.Skipped(CaptureSkipReason.PAYMENT_KEYWORD_NOT_MATCHED)
         }
@@ -34,6 +40,7 @@ object CaptureParser {
         return CaptureDetection.Captured(
             amount,
             CaptureMerchantResolver.resolve(packageName, combined),
+            CaptureDirection.OUT,
         )
     }
 
@@ -46,5 +53,11 @@ object CaptureParser {
         val detection = detect(packageName, title, text, bigText)
         if (detection !is CaptureDetection.Captured) return null
         return ParsedCapture(detection.amount, detection.merchant)
+    }
+
+    private fun normalize(values: List<String>): String {
+        return values.joinToString(" ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
     }
 }

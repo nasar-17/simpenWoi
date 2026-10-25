@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/transaction_values.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency.dart';
 import '../../../../core/utils/date_formatter.dart';
@@ -54,8 +53,9 @@ class UncategorizedTile extends ConsumerWidget {
     } catch (_) {
       return;
     }
-    final List<Category> expenseCategories = categories
-        .where((Category category) => category.type == TransactionType.expense)
+    final String type = detail.transaction.type;
+    final List<Category> filteredCategories = categories
+        .where((Category category) => category.type == type)
         .toList(growable: false);
     if (!context.mounted) {
       return;
@@ -65,7 +65,7 @@ class UncategorizedTile extends ConsumerWidget {
       context: context,
       useSafeArea: true,
       builder: (BuildContext context) =>
-          CategoryPickerSheet(categories: expenseCategories),
+          CategoryPickerSheet(categories: filteredCategories),
     );
     if (selected == null) {
       return;
@@ -74,7 +74,7 @@ class UncategorizedTile extends ConsumerWidget {
     final List<Category> latest =
         ref.read(categoriesProvider).value ?? categories;
     final bool stillValid =
-        validCategoryId(selected, TransactionType.expense, latest) != null;
+        validCategoryId(selected, detail.transaction.type, latest) != null;
     if (!stillValid) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

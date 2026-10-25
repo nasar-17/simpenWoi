@@ -8,36 +8,58 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
+import com.drena.simpen_woi.capture.parser.CaptureDirection
 import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import com.drena.simpen_woi.capture.queue.PendingCapture
 
 class CaptureNotifier(private val context: Context) {
     fun showQuestion(capture: PendingCapture) {
         ensureChannel()
+        val incoming = capture.direction == CaptureDirection.IN.label
         val builder = baseBuilder()
             .setWhen(capture.postedAt)
-            .setContentTitle(CaptureNotificationText.title(capture))
-            .setContentText(CaptureNotificationText.QUESTION_TEXT)
+            .setContentTitle(
+                if (incoming) {
+                    CaptureNotificationText.incomingTitle(capture)
+                } else {
+                    CaptureNotificationText.title(capture)
+                },
+            )
+            .setContentText(
+                if (incoming) {
+                    CaptureNotificationText.INCOMING_QUESTION
+                } else {
+                    CaptureNotificationText.QUESTION_TEXT
+                },
+            )
             .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .bigText(CaptureNotificationText.QUESTION_BIG_TEXT),
+                NotificationCompat.BigTextStyle().bigText(
+                    if (incoming) {
+                        CaptureNotificationText.INCOMING_BIG_TEXT
+                    } else {
+                        CaptureNotificationText.QUESTION_BIG_TEXT
+                    },
+                ),
             )
             .setContentIntent(CaptureNotificationIntents.openApp(context, capture.id))
             .setAutoCancel(false)
             .setTimeoutAfter(CaptureNotificationContract.QUESTION_TIMEOUT_MS)
             .setGroup(CaptureNotificationContract.GROUP_KEY)
 
-        CapturePreferences.getTopCategories(context)
-            .take(2)
-            .forEach { category ->
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        0,
-                        category.name,
-                        CaptureNotificationIntents.category(context, capture.id, category),
-                    ).build(),
-                )
-            }
+        val categories = if (incoming) {
+            CapturePreferences.getTopIncomeCategories(context)
+        } else {
+            CapturePreferences.getTopCategories(context)
+        }
+        categories.take(2).forEach { category ->
+            builder.addAction(
+                NotificationCompat.Action.Builder(
+                    0,
+                    category.name,
+                    CaptureNotificationIntents.category(context, capture.id, category),
+                ).build(),
+            )
+        }
 
         builder.addAction(
             NotificationCompat.Action.Builder(
@@ -59,9 +81,16 @@ class CaptureNotifier(private val context: Context) {
 
     fun showSaved(capture: PendingCapture, categoryName: String) {
         ensureChannel()
+        val incoming = capture.direction == CaptureDirection.IN.label
         val builder = baseBuilder()
             .setWhen(capture.postedAt)
-            .setContentTitle(CaptureNotificationText.savedTitle(capture, categoryName))
+            .setContentTitle(
+                if (incoming) {
+                    CaptureNotificationText.incomingSavedTitle(capture, categoryName)
+                } else {
+                    CaptureNotificationText.savedTitle(capture, categoryName)
+                },
+            )
             .setContentText(CaptureNotificationText.SAVED_BODY)
             .setContentIntent(CaptureNotificationIntents.openApp(context, capture.id))
             .setAutoCancel(true)

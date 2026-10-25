@@ -53,16 +53,20 @@ class TransactionRepository {
         );
   }
 
-  Future<List<int>> topExpenseCategoryIds({int limit = 2}) async {
+  Future<List<int>> topCategoryIds(String type, {int limit = 2}) async {
     final List<QueryRow> rows = await _database
         .customSelect(
-          'SELECT category_id, COUNT(*) AS usage_count '
-          'FROM transactions '
-          'WHERE category_id IS NOT NULL '
-          'GROUP BY category_id '
-          'ORDER BY usage_count DESC, category_id ASC '
+          'SELECT t.category_id, COUNT(*) AS usage_count '
+          'FROM transactions t '
+          'JOIN categories c ON c.id = t.category_id '
+          'WHERE c.type = ? '
+          'GROUP BY t.category_id '
+          'ORDER BY usage_count DESC, t.category_id ASC '
           'LIMIT ?',
-          variables: <Variable<Object>>[Variable.withInt(limit)],
+          variables: <Variable<Object>>[
+            Variable.withString(type),
+            Variable.withInt(limit),
+          ],
         )
         .get();
     return rows

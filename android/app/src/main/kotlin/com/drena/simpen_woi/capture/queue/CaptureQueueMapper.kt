@@ -8,8 +8,9 @@ internal fun Cursor.toPendingCapture(): PendingCapture = PendingCapture(
     merchant = if (isNull(2)) null else getString(2),
     sourcePackage = getString(3),
     postedAt = getLong(4),
-    categoryId = if (isNull(5)) null else getInt(5),
-    note = if (isNull(6)) null else getString(6),
+    direction = getString(5),
+    categoryId = if (isNull(6)) null else getInt(6),
+    note = if (isNull(7)) null else getString(7),
 )
 
 internal fun Cursor.toDirtyCapture(): DirtyCapture = DirtyCapture(

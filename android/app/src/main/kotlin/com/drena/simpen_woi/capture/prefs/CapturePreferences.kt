@@ -12,6 +12,8 @@ object CapturePreferences {
     const val PREFS_NAME = "simpenwoi_capture_prefs"
     private const val KEY_CATEGORIES = "expense_categories"
     private const val KEY_TOP_CATEGORIES = "top_categories"
+    private const val KEY_INCOME_CATEGORIES = "income_categories"
+    private const val KEY_TOP_INCOME_CATEGORIES = "top_income_categories"
     private const val KEY_MERCHANT_RULES = "merchant_rules"
     private const val KEY_RECENT_KEYS = "recent_notification_keys"
     private const val RECENT_KEY_TTL_MS = 10 * 60 * 1000L
@@ -21,10 +23,24 @@ object CapturePreferences {
         return context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    fun saveCategories(context: Context, raw: List<*>?, topRaw: List<*>?) {
+    fun saveCategories(
+        context: Context,
+        raw: List<*>?,
+        topRaw: List<*>?,
+        incomeRaw: List<*>?,
+        topIncomeRaw: List<*>?,
+    ) {
         prefs(context).edit()
             .putString(KEY_CATEGORIES, categoriesToJson(parseCategoryList(raw)).toString())
             .putString(KEY_TOP_CATEGORIES, categoriesToJson(parseCategoryList(topRaw)).toString())
+            .putString(
+                KEY_INCOME_CATEGORIES,
+                categoriesToJson(parseCategoryList(incomeRaw)).toString(),
+            )
+            .putString(
+                KEY_TOP_INCOME_CATEGORIES,
+                categoriesToJson(parseCategoryList(topIncomeRaw)).toString(),
+            )
             .apply()
     }
 
@@ -34,6 +50,15 @@ object CapturePreferences {
 
     fun getTopCategories(context: Context): List<CaptureCategory> {
         return readCategoryList(prefs(context).getString(KEY_TOP_CATEGORIES, null))
+    }
+
+    fun getIncomeCategories(context: Context): List<CaptureCategory> {
+        return readCategoryList(prefs(context).getString(KEY_INCOME_CATEGORIES, null))
+    }
+
+    fun getTopIncomeCategories(context: Context): List<CaptureCategory> {
+        val top = readCategoryList(prefs(context).getString(KEY_TOP_INCOME_CATEGORIES, null))
+        return top.ifEmpty { getIncomeCategories(context).take(2) }
     }
 
     fun saveMerchantRules(context: Context, raw: List<*>?) {

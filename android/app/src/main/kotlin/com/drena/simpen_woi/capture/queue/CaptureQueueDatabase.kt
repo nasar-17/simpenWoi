@@ -19,6 +19,7 @@ internal class CaptureQueueDatabase(context: Context) : SQLiteOpenHelper(
                 merchant TEXT,
                 source_package TEXT NOT NULL,
                 posted_at INTEGER NOT NULL,
+                direction TEXT NOT NULL DEFAULT 'OUT',
                 category_id INTEGER,
                 note TEXT,
                 status TEXT NOT NULL DEFAULT '${CaptureQueueSchema.STATUS_PENDING}',
@@ -34,6 +35,12 @@ internal class CaptureQueueDatabase(context: Context) : SQLiteOpenHelper(
         if (oldVersion < 2) {
             db.execSQL(
                 "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN dirty INTEGER NOT NULL DEFAULT 0",
+            )
+        }
+        if (oldVersion < 3) {
+            db.execSQL(
+                "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN " +
+                    "direction TEXT NOT NULL DEFAULT 'OUT'",
             )
         }
     }

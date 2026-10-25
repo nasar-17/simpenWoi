@@ -7,6 +7,7 @@ import com.drena.simpen_woi.capture.inspector.CaptureInspector
 import com.drena.simpen_woi.capture.inspector.InspectorEntry
 import com.drena.simpen_woi.capture.notify.CaptureNotifier
 import com.drena.simpen_woi.capture.parser.CaptureDetection
+import com.drena.simpen_woi.capture.parser.CaptureDirection
 import com.drena.simpen_woi.capture.parser.CaptureParser
 import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import com.drena.simpen_woi.capture.queue.CaptureExecutor
@@ -52,6 +53,7 @@ class NotificationCaptureService : NotificationListenerService() {
             ?: extras?.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString()
 
         val detection = CaptureParser.detect(sourcePackage, title, text, bigText)
+        val postedAt = if (sbn.postTime > 0L) sbn.postTime else System.currentTimeMillis()
         if (CaptureInspector.isEnabled(this)) {
             recordInspector(
                 sbn,
@@ -59,7 +61,8 @@ class NotificationCaptureService : NotificationListenerService() {
                 title,
                 text,
                 bigText,
-                inspectResult(detection, sourcePackage, sbn.key),
+                inspectResult(detection, sourcePackage, sbn.key, postedAt),
+                detection.direction?.label,
             )
         }
         if (detection !is CaptureDetection.Captured) return
@@ -68,17 +71,29 @@ class NotificationCaptureService : NotificationListenerService() {
         if (CapturePreferences.shouldIgnoreNotificationKey(this, key)) return
 
         val queue = CaptureQueue.getInstance(this)
-        if (queue.hasRecentAmount(detection.amount, sourcePackage, AMOUNT_DEDUPE_WINDOW_MS)) {
+        if (
+            queue.hasRecentAmount(
+                detection.amount,
+                detection.direction.label,
+                sourcePackage,
+                postedAt,
+                AMOUNT_DEDUPE_WINDOW_MS,
+            )
+        ) {
             return
         }
 
-        val postedAt = if (sbn.postTime > 0L) sbn.postTime else System.currentTimeMillis()
-        val rule = CapturePreferences.getMerchantRule(this, detection.merchant)
+        val rule = if (detection.direction == CaptureDirection.OUT) {
+            CapturePreferences.getMerchantRule(this, detection.merchant)
+        } else {
+            null
+        }
         val captureId = queue.insertCapture(
             detection.amount,
             detection.merchant,
             sourcePackage,
             postedAt,
+            detection.direction.label,
             rule?.categoryId,
         )
         if (captureId <= 0L) return
@@ -89,6 +104,7 @@ class NotificationCaptureService : NotificationListenerService() {
             detection.merchant,
             sourcePackage,
             postedAt,
+            detection.direction.label,
             rule?.categoryId,
             null,
         )
@@ -105,6 +121,7 @@ class NotificationCaptureService : NotificationListenerService() {
         detection: CaptureDetection,
         sourcePackage: String,
         key: String?,
+        postedAt: Long,
     ): String {
         if (detection !is CaptureDetection.Captured) {
             return CaptureInspector.resultFor(detection)
@@ -113,7 +130,15 @@ class NotificationCaptureService : NotificationListenerService() {
             return CaptureInspector.resultFor(detection, duplicate = true)
         }
         val queue = CaptureQueue.getInstance(this)
-        if (queue.hasRecentAmount(detection.amount, sourcePackage, AMOUNT_DEDUPE_WINDOW_MS)) {
+        if (
+            queue.hasRecentAmount(
+                detection.amount,
+                detection.direction.label,
+                sourcePackage,
+                postedAt,
+                AMOUNT_DEDUPE_WINDOW_MS,
+            )
+        ) {
             return CaptureInspector.resultFor(detection, duplicate = true)
         }
         return CaptureInspector.resultFor(detection)
@@ -126,6 +151,7 @@ class NotificationCaptureService : NotificationListenerService() {
         text: String?,
         bigText: String?,
         result: String,
+        direction: String?,
     ) {
         val postedAt = if (sbn.postTime > 0L) sbn.postTime else System.currentTimeMillis()
         CaptureInspector.record(
@@ -137,6 +163,7 @@ class NotificationCaptureService : NotificationListenerService() {
                 text,
                 bigText,
                 result,
+                direction,
             ),
         )
     }

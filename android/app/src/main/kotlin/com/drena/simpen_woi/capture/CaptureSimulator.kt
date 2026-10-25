@@ -2,6 +2,7 @@ package com.drena.simpen_woi.capture
 
 import android.content.Context
 import com.drena.simpen_woi.capture.notify.CaptureNotifier
+import com.drena.simpen_woi.capture.parser.CaptureDirection
 import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import com.drena.simpen_woi.capture.queue.CaptureQueue
 import com.drena.simpen_woi.capture.queue.PendingCapture
@@ -20,6 +21,7 @@ object CaptureSimulator {
             trimmedMerchant,
             SIMULATOR_PACKAGE,
             postedAt,
+            CaptureDirection.OUT.label,
             rule?.categoryId,
         )
         if (captureId <= 0L) return
@@ -30,6 +32,7 @@ object CaptureSimulator {
             trimmedMerchant,
             SIMULATOR_PACKAGE,
             postedAt,
+            CaptureDirection.OUT.label,
             rule?.categoryId,
             null,
         )

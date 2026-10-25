@@ -4,6 +4,7 @@ import '../../transactions/data/transaction_repository.dart';
 import '../../wallets/data/wallet_repository.dart';
 import '../../wallets/domain/wallet_resolver.dart';
 import '../domain/capture_category_resolver.dart';
+import '../domain/capture_direction.dart';
 import 'capture_context_pusher.dart';
 import 'merchant_rule_repository.dart';
 import 'native_capture_bridge.dart';
@@ -45,10 +46,14 @@ class CaptureImporter {
         continue;
       }
 
+      final bool incoming = capture.direction == CaptureDirection.incoming;
+      final String type = incoming
+          ? TransactionType.income
+          : TransactionType.expense;
       final int? categoryId = resolveCaptureCategory(capture, categories);
       await transactionRepository.addTransaction(
         amount: capture.amount,
-        type: TransactionType.expense,
+        type: type,
         walletId: resolveWalletForPackage(wallets, capture.sourcePackage).id,
         categoryId: categoryId,
         note: capture.note,
@@ -58,7 +63,7 @@ class CaptureImporter {
         nativeCaptureId: capture.id,
       );
 
-      if (categoryId != null && capture.categoryId != null) {
+      if (!incoming && categoryId != null && capture.categoryId != null) {
         final String? merchant = capture.merchant?.trim();
         if (merchant != null && merchant.isNotEmpty) {
           await merchantRuleRepository.recordUsage(merchant, categoryId);
@@ -111,7 +116,8 @@ class CaptureImporter {
         );
 
         final String? merchant = record.merchant?.trim();
-        if (categoryId != null &&
+        if (record.type == TransactionType.expense &&
+            categoryId != null &&
             categoryId != record.categoryId &&
             merchant != null &&
             merchant.isNotEmpty) {

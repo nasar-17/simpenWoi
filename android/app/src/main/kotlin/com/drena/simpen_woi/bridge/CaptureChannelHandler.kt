@@ -75,8 +75,16 @@ class CaptureChannelHandler(private val activity: Activity) {
                 "pushCategories" -> {
                     val categories = call.argument<List<*>>("categories")
                     val topCategories = call.argument<List<*>>("top_categories")
+                    val incomeCategories = call.argument<List<*>>("income_categories")
+                    val topIncomeCategories = call.argument<List<*>>("top_income_categories")
                     runAsync(result) {
-                        CapturePreferences.saveCategories(activity, categories, topCategories)
+                        CapturePreferences.saveCategories(
+                            activity,
+                            categories,
+                            topCategories,
+                            incomeCategories,
+                            topIncomeCategories,
+                        )
                         null
                     }
                 }

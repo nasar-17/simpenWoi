@@ -23,8 +23,16 @@ class CaptureContextPusher {
     final List<Category> expenseCategories = categories
         .where((Category category) => category.type == TransactionType.expense)
         .toList();
-    final List<Category> topCategories = await _topExpenseCategories(
+    final List<Category> incomeCategories = categories
+        .where((Category category) => category.type == TransactionType.income)
+        .toList();
+    final List<Category> topCategories = await _topCategories(
       expenseCategories,
+      TransactionType.expense,
+    );
+    final List<Category> topIncomeCategories = await _topCategories(
+      incomeCategories,
+      TransactionType.income,
     );
     final List<MerchantRule> rules = await merchantRuleRepository.getAll();
     final Map<int, String> categoryNames = <int, String>{
@@ -34,6 +42,8 @@ class CaptureContextPusher {
     await bridge.pushCategories(
       categories: expenseCategories.map(_categoryPayload).toList(),
       topCategories: topCategories.map(_categoryPayload).toList(),
+      incomeCategories: incomeCategories.map(_categoryPayload).toList(),
+      topIncomeCategories: topIncomeCategories.map(_categoryPayload).toList(),
     );
     await bridge.pushMerchantRules(
       rules
@@ -53,21 +63,23 @@ class CaptureContextPusher {
     );
   }
 
-  Future<List<Category>> _topExpenseCategories(
-    List<Category> expenseCategories,
+  Future<List<Category>> _topCategories(
+    List<Category> source,
+    String type,
   ) async {
-    if (expenseCategories.isEmpty) {
+    if (source.isEmpty) {
       return <Category>[];
     }
 
-    final List<int> topIds = await transactionRepository.topExpenseCategoryIds(
+    final List<int> topIds = await transactionRepository.topCategoryIds(
+      type,
       limit: CaptureConstants.topCategoryLimit,
     );
     final List<Category> result = <Category>[
       for (final int id in topIds)
-        ...expenseCategories.where((Category category) => category.id == id),
+        ...source.where((Category category) => category.id == id),
     ];
-    for (final Category category in expenseCategories) {
+    for (final Category category in source) {
       if (result.length >= CaptureConstants.topCategoryLimit) {
         break;
       }

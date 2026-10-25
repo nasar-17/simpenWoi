@@ -1,3 +1,4 @@
+import '../../../core/constants/capture_wallet_names.dart';
 import '../../../core/database/app_database.dart';
 
 /// Memilih dompet berdasarkan pilihan pengguna atau dompet default.
@@ -19,18 +20,13 @@ Wallet resolveWallet(List<Wallet> wallets, {int? preferredId}) {
 
 /// Memilih dompet dari nama paket sumber notifikasi.
 Wallet resolveWalletForPackage(List<Wallet> wallets, String sourcePackage) {
-  final String normalizedPackage = sourcePackage.toLowerCase().replaceAll(
-    RegExp(r'[^a-z0-9]'),
-    '',
-  );
-  for (final Wallet wallet in wallets) {
-    final String normalizedName = wallet.name.toLowerCase().replaceAll(
-      RegExp(r'[^a-z0-9]'),
-      '',
-    );
-    if (normalizedName.isNotEmpty &&
-        normalizedPackage.contains(normalizedName)) {
-      return wallet;
+  final String? targetName = captureWalletNames[sourcePackage];
+  if (targetName != null) {
+    final String normalizedTarget = targetName.trim().toLowerCase();
+    for (final Wallet wallet in wallets) {
+      if (wallet.name.trim().toLowerCase() == normalizedTarget) {
+        return wallet;
+      }
     }
   }
   return resolveWallet(wallets);

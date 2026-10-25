@@ -7,6 +7,7 @@ String formatInspectorEntry(InspectorEntry entry) {
   final List<String> lines = <String>[
     formatDateTimeShort(entry.time),
     entry.packageName,
+    if (entry.direction != null) 'Arah: ${entry.direction}',
     if (entry.title?.isNotEmpty ?? false) 'Judul: ${entry.title}',
     if (entry.text?.isNotEmpty ?? false) 'Teks: ${entry.text}',
     if (entry.bigText?.isNotEmpty ?? false) 'Big text: ${entry.bigText}',
@@ -55,6 +56,11 @@ class InspectorEntryTile extends StatelessWidget {
               context,
             ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
+          if (entry.direction != null)
+            Text(
+              'Arah: ${entry.direction}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           if (entry.title?.isNotEmpty ?? false)
             Text(
               'Judul: ${entry.title}',
