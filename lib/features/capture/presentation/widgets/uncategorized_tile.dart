@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/transaction_values.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../categories/domain/category_selection.dart';
 import '../../../transactions/data/transaction_detail.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../providers/capture_providers.dart';
@@ -46,9 +48,15 @@ class UncategorizedTile extends ConsumerWidget {
   }
 
   Future<void> _pickCategory(BuildContext context, WidgetRef ref) async {
-    final List<Category> categories = await ref
-        .read(transactionRepositoryProvider)
-        .getExpenseCategories();
+    final List<Category> categories;
+    try {
+      categories = await ref.read(categoriesProvider.future);
+    } catch (_) {
+      return;
+    }
+    final List<Category> expenseCategories = categories
+        .where((Category category) => category.type == TransactionType.expense)
+        .toList(growable: false);
     if (!context.mounted) {
       return;
     }
@@ -57,9 +65,22 @@ class UncategorizedTile extends ConsumerWidget {
       context: context,
       useSafeArea: true,
       builder: (BuildContext context) =>
-          CategoryPickerSheet(categories: categories),
+          CategoryPickerSheet(categories: expenseCategories),
     );
     if (selected == null) {
+      return;
+    }
+
+    final List<Category> latest =
+        ref.read(categoriesProvider).value ?? categories;
+    final bool stillValid =
+        validCategoryId(selected, TransactionType.expense, latest) != null;
+    if (!stillValid) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kategori sudah tidak tersedia.')),
+        );
+      }
       return;
     }
 

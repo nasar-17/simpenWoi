@@ -2,9 +2,9 @@ import 'package:drift/drift.dart';
 
 import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
+import '../../wallets/domain/wallet_balance.dart';
 import 'transaction_detail.dart';
 import 'transaction_queries.dart';
-import 'wallet_balance.dart';
 
 /// Akses data transaksi, kategori, dan penyesuaian saldo dompet.
 class TransactionRepository {

@@ -24,6 +24,12 @@ MigrationStrategy buildMigrationStrategy(AppDatabase database) {
       if (from < 5) {
         await _createTransactionIndexes(database);
       }
+      if (from < 6) {
+        await migrator.addColumn(
+          database.categories,
+          database.categories.keywords,
+        );
+      }
     },
     beforeOpen: (OpeningDetails details) async {
       await database.customStatement('PRAGMA foreign_keys = ON');

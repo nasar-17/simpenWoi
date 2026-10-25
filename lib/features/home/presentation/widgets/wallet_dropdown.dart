@@ -34,7 +34,15 @@ class WalletDropdown extends ConsumerWidget {
           wallets,
           preferredId: preferredId,
         );
+        if (preferredId != selected.id) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              onChanged(selected.id);
+            }
+          });
+        }
         return DropdownButtonFormField<int>(
+          key: ValueKey<int>(selected.id),
           initialValue: selected.id,
           decoration: InputDecoration(labelText: 'Dompet', isDense: isDense),
           items: wallets

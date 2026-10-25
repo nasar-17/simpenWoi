@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/capture/presentation/pages/uncategorized_page.dart';
+import '../features/categories/presentation/pages/categories_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/recap/presentation/pages/recap_page.dart';
 import '../features/savings_goals/presentation/pages/savings_goals_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
+import '../features/wallets/presentation/pages/wallets_page.dart';
 import 'app_shell.dart';
 
 GoRouter createAppRouter() {
@@ -64,6 +66,18 @@ GoRouter createAppRouter() {
         name: 'uncategorized',
         builder: (BuildContext context, GoRouterState state) =>
             const UncategorizedPage(),
+      ),
+      GoRoute(
+        path: '/settings/categories',
+        name: 'categories',
+        builder: (BuildContext context, GoRouterState state) =>
+            const CategoriesPage(),
+      ),
+      GoRoute(
+        path: '/settings/wallets',
+        name: 'wallets',
+        builder: (BuildContext context, GoRouterState state) =>
+            const WalletsPage(),
       ),
     ],
   );

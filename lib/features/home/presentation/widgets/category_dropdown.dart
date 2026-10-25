@@ -31,8 +31,20 @@ class CategoryDropdown extends ConsumerWidget {
         final List<Category> filtered = categories
             .where((Category category) => category.type == type)
             .toList();
+        final int? selectedId =
+            filtered.any((Category category) => category.id == initialValue)
+            ? initialValue
+            : null;
+        if (selectedId != initialValue) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              onChanged(selectedId);
+            }
+          });
+        }
         return DropdownButtonFormField<int?>(
-          initialValue: initialValue,
+          key: ValueKey<int?>(selectedId),
+          initialValue: selectedId,
           decoration: const InputDecoration(labelText: 'Kategori'),
           items: <DropdownMenuItem<int?>>[
             const DropdownMenuItem<int?>(

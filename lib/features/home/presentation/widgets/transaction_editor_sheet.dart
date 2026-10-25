@@ -7,7 +7,10 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency.dart';
 import '../../../../core/utils/currency_input_formatter.dart';
 import '../../../capture/presentation/providers/capture_providers.dart';
+import '../../../categories/domain/category_selection.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
+import '../../../wallets/domain/wallet_resolver.dart';
+import '../../../wallets/presentation/providers/wallet_providers.dart';
 import 'category_dropdown.dart';
 import 'transaction_type_selector.dart';
 import 'wallet_dropdown.dart';
@@ -56,22 +59,11 @@ class _TransactionEditorSheetState
   }
 
   void _onTypeChanged(String newType) {
+    final List<Category> categories =
+        ref.read(categoriesProvider).value ?? const <Category>[];
     setState(() {
       _type = newType;
-      if (_categoryId != null) {
-        final bool stillValid =
-            ref
-                .read(categoriesProvider)
-                .value
-                ?.any(
-                  (Category category) =>
-                      category.id == _categoryId && category.type == newType,
-                ) ??
-            false;
-        if (!stillValid) {
-          _categoryId = null;
-        }
-      }
+      _categoryId = validCategoryId(_categoryId, newType, categories);
     });
   }
 
@@ -80,6 +72,17 @@ class _TransactionEditorSheetState
     if (amount <= 0) {
       return;
     }
+    final List<Wallet> wallets = ref.read(walletsProvider).value ?? <Wallet>[];
+    if (wallets.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Dompet belum tersedia.')));
+      return;
+    }
+    final List<Category> categories =
+        ref.read(categoriesProvider).value ?? const <Category>[];
+    final int? categoryId = validCategoryId(_categoryId, _type, categories);
+    final Wallet wallet = resolveWallet(wallets, preferredId: _walletId);
     final String note = _noteController.text.trim();
     final String merchant = _merchantController.text.trim();
 
@@ -89,13 +92,12 @@ class _TransactionEditorSheetState
           id: widget.transaction.id,
           amount: amount,
           type: _type,
-          walletId: _walletId,
-          categoryId: _categoryId,
+          walletId: wallet.id,
+          categoryId: categoryId,
           note: note.isEmpty ? null : note,
           merchant: merchant.isEmpty ? null : merchant,
         );
 
-    final int? categoryId = _categoryId;
     if (categoryId != null) {
       await ref
           .read(captureSyncServiceProvider)

@@ -82,6 +82,12 @@ deteksi parser (ditangkap atau alasan dilewati), sehingga notifikasi yang tidak
 tertangkap dapat didiagnosis. Isi notifikasi hanya disimpan selama inspektor
 aktif dan dapat dihapus dari layar tersebut.
 
+Kategori dan dompet dapat dikelola dari **Pengaturan > Kelola kategori/dompet**.
+Kata kunci kategori dipakai parser sebelum kamus bawaan, dan setiap perubahan
+kategori langsung dikirim ulang ke layanan capture native. Menghapus kategori
+atau dompet yang masih dipakai akan memindahkan transaksi terkait terlebih
+dahulu.
+
 ## Menjalankan
 
 ```sh

@@ -9,6 +9,7 @@ import '../../../capture/presentation/providers/capture_providers.dart';
 import '../widgets/inspector_settings_section.dart';
 import '../widgets/notification_settings_section.dart';
 import '../widgets/settings_info_sections.dart';
+import '../widgets/settings_management_section.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -146,10 +147,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
             onSimulateCapture: _simulateCapture,
           ),
           const SizedBox(height: 16),
+          const SettingsManagementSection(),
           if (kDebugMode) ...<Widget>[
             const SizedBox(height: 16),
             const InspectorSettingsSection(),
           ],
+          const SizedBox(height: 16),
           const SettingsInfoSections(),
           const SizedBox(height: 32),
           Center(

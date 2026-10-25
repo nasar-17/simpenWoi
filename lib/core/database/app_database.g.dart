@@ -394,6 +394,17 @@ class $CategoriesTable extends Categories
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _keywordsMeta = const VerificationMeta(
+    'keywords',
+  );
+  @override
+  late final GeneratedColumn<String> keywords = GeneratedColumn<String>(
+    'keywords',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
@@ -417,7 +428,14 @@ class $CategoriesTable extends Categories
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, icon, type, createdAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    icon,
+    keywords,
+    type,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -445,6 +463,12 @@ class $CategoriesTable extends Categories
       context.handle(
         _iconMeta,
         icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('keywords')) {
+      context.handle(
+        _keywordsMeta,
+        keywords.isAcceptableOrUnknown(data['keywords']!, _keywordsMeta),
       );
     }
     if (data.containsKey('type')) {
@@ -480,6 +504,10 @@ class $CategoriesTable extends Categories
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       ),
+      keywords: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}keywords'],
+      ),
       type: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}type'],
@@ -501,12 +529,14 @@ class Category extends DataClass implements Insertable<Category> {
   final int id;
   final String name;
   final String? icon;
+  final String? keywords;
   final String type;
   final DateTime createdAt;
   const Category({
     required this.id,
     required this.name,
     this.icon,
+    this.keywords,
     required this.type,
     required this.createdAt,
   });
@@ -518,6 +548,9 @@ class Category extends DataClass implements Insertable<Category> {
     if (!nullToAbsent || icon != null) {
       map['icon'] = Variable<String>(icon);
     }
+    if (!nullToAbsent || keywords != null) {
+      map['keywords'] = Variable<String>(keywords);
+    }
     map['type'] = Variable<String>(type);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -528,6 +561,9 @@ class Category extends DataClass implements Insertable<Category> {
       id: Value(id),
       name: Value(name),
       icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      keywords: keywords == null && nullToAbsent
+          ? const Value.absent()
+          : Value(keywords),
       type: Value(type),
       createdAt: Value(createdAt),
     );
@@ -542,6 +578,7 @@ class Category extends DataClass implements Insertable<Category> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       icon: serializer.fromJson<String?>(json['icon']),
+      keywords: serializer.fromJson<String?>(json['keywords']),
       type: serializer.fromJson<String>(json['type']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -553,6 +590,7 @@ class Category extends DataClass implements Insertable<Category> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'icon': serializer.toJson<String?>(icon),
+      'keywords': serializer.toJson<String?>(keywords),
       'type': serializer.toJson<String>(type),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -562,12 +600,14 @@ class Category extends DataClass implements Insertable<Category> {
     int? id,
     String? name,
     Value<String?> icon = const Value.absent(),
+    Value<String?> keywords = const Value.absent(),
     String? type,
     DateTime? createdAt,
   }) => Category(
     id: id ?? this.id,
     name: name ?? this.name,
     icon: icon.present ? icon.value : this.icon,
+    keywords: keywords.present ? keywords.value : this.keywords,
     type: type ?? this.type,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -576,6 +616,7 @@ class Category extends DataClass implements Insertable<Category> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       icon: data.icon.present ? data.icon.value : this.icon,
+      keywords: data.keywords.present ? data.keywords.value : this.keywords,
       type: data.type.present ? data.type.value : this.type,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -587,6 +628,7 @@ class Category extends DataClass implements Insertable<Category> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('icon: $icon, ')
+          ..write('keywords: $keywords, ')
           ..write('type: $type, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -594,7 +636,7 @@ class Category extends DataClass implements Insertable<Category> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, icon, type, createdAt);
+  int get hashCode => Object.hash(id, name, icon, keywords, type, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -602,6 +644,7 @@ class Category extends DataClass implements Insertable<Category> {
           other.id == this.id &&
           other.name == this.name &&
           other.icon == this.icon &&
+          other.keywords == this.keywords &&
           other.type == this.type &&
           other.createdAt == this.createdAt);
 }
@@ -610,12 +653,14 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
   final Value<int> id;
   final Value<String> name;
   final Value<String?> icon;
+  final Value<String?> keywords;
   final Value<String> type;
   final Value<DateTime> createdAt;
   const CategoriesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.icon = const Value.absent(),
+    this.keywords = const Value.absent(),
     this.type = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -623,6 +668,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     this.id = const Value.absent(),
     required String name,
     this.icon = const Value.absent(),
+    this.keywords = const Value.absent(),
     this.type = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name);
@@ -630,6 +676,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? icon,
+    Expression<String>? keywords,
     Expression<String>? type,
     Expression<DateTime>? createdAt,
   }) {
@@ -637,6 +684,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (icon != null) 'icon': icon,
+      if (keywords != null) 'keywords': keywords,
       if (type != null) 'type': type,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -646,6 +694,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Value<int>? id,
     Value<String>? name,
     Value<String?>? icon,
+    Value<String?>? keywords,
     Value<String>? type,
     Value<DateTime>? createdAt,
   }) {
@@ -653,6 +702,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
       id: id ?? this.id,
       name: name ?? this.name,
       icon: icon ?? this.icon,
+      keywords: keywords ?? this.keywords,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -670,6 +720,9 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
     }
+    if (keywords.present) {
+      map['keywords'] = Variable<String>(keywords.value);
+    }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
@@ -685,6 +738,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('icon: $icon, ')
+          ..write('keywords: $keywords, ')
           ..write('type: $type, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2709,6 +2763,7 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       Value<String?> icon,
+      Value<String?> keywords,
       Value<String> type,
       Value<DateTime> createdAt,
     });
@@ -2717,6 +2772,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<String?> icon,
+      Value<String?> keywords,
       Value<String> type,
       Value<DateTime> createdAt,
     });
@@ -2783,6 +2839,11 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<String> get icon => $composableBuilder(
     column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get keywords => $composableBuilder(
+    column: $table.keywords,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2871,6 +2932,11 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get keywords => $composableBuilder(
+    column: $table.keywords,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
@@ -2899,6 +2965,9 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<String> get keywords =>
+      $composableBuilder(column: $table.keywords, builder: (column) => column);
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -2991,12 +3060,14 @@ class $$CategoriesTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<String?> keywords = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CategoriesCompanion(
                 id: id,
                 name: name,
                 icon: icon,
+                keywords: keywords,
                 type: type,
                 createdAt: createdAt,
               ),
@@ -3005,12 +3076,14 @@ class $$CategoriesTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 Value<String?> icon = const Value.absent(),
+                Value<String?> keywords = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CategoriesCompanion.insert(
                 id: id,
                 name: name,
                 icon: icon,
+                keywords: keywords,
                 type: type,
                 createdAt: createdAt,
               ),

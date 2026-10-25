@@ -1,6 +1,8 @@
 import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/parser/category_rule.dart';
 import '../../../core/parser/transaction_parser.dart';
+import '../../categories/domain/category_rules.dart';
 import '../data/native_capture_models.dart';
 
 const TransactionParser _parser = TransactionParser();
@@ -15,7 +17,10 @@ int? resolveCaptureCategory(NativeCapture capture, List<Category> categories) {
   if (note == null || note.isEmpty) {
     return null;
   }
-  final int? parsedCategoryId = _parser.parse(note).categoryId;
+  final List<CategoryRule> rules = categoryRulesFrom(categories);
+  final int? parsedCategoryId = _parser
+      .parse(note, categories: rules)
+      .categoryId;
   return _isExpenseCategory(parsedCategoryId, categories)
       ? parsedCategoryId
       : null;
@@ -33,7 +38,10 @@ int? resolveDirtyCaptureCategory(
 
   final String? note = dirty.note?.trim();
   if (note != null && note.isNotEmpty) {
-    final int? parsedCategoryId = _parser.parse(note).categoryId;
+    final List<CategoryRule> rules = categoryRulesFrom(categories);
+    final int? parsedCategoryId = _parser
+        .parse(note, categories: rules)
+        .categoryId;
     if (_isExpenseCategory(parsedCategoryId, categories)) {
       return parsedCategoryId;
     }

@@ -39,7 +39,8 @@ class CaptureContextPusher {
       rules
           .where(
             (MerchantRule rule) =>
-                rule.useCount >= CaptureConstants.merchantRuleThreshold,
+                rule.useCount >= CaptureConstants.merchantRuleThreshold &&
+                categoryNames.containsKey(rule.categoryId),
           )
           .map(
             (MerchantRule rule) => <String, Object?>{

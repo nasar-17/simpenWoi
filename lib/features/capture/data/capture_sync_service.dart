@@ -20,6 +20,10 @@ class CaptureSyncService {
 
   bool _syncing = false;
 
+  Future<void> refreshNativeContext() {
+    return contextPusher.pushLocalContext();
+  }
+
   Future<void> sync() async {
     if (_syncing) {
       return;

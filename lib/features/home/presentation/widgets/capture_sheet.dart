@@ -8,6 +8,8 @@ import '../../../../core/parser/parsed_entry.dart';
 import '../../../../core/parser/transaction_parser.dart';
 import '../../../../core/utils/currency.dart';
 import '../../../../core/utils/currency_input_formatter.dart';
+import '../../../categories/domain/category_rules.dart';
+import '../../../categories/domain/category_selection.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../../../wallets/domain/wallet_resolver.dart';
 import '../../../wallets/presentation/providers/wallet_providers.dart';
@@ -53,7 +55,12 @@ class _CaptureSheetState extends ConsumerState<CaptureSheet> {
       return;
     }
 
-    final ParsedEntry parsed = const TransactionParser().parse(value);
+    final List<Category> categories =
+        ref.read(categoriesProvider).value ?? const <Category>[];
+    final ParsedEntry parsed = const TransactionParser().parse(
+      value,
+      categories: categoryRulesFrom(categories),
+    );
     setState(() {
       _parsed = parsed;
       _type = parsed.type;
@@ -66,22 +73,11 @@ class _CaptureSheetState extends ConsumerState<CaptureSheet> {
   }
 
   void _onTypeChanged(String newType) {
+    final List<Category> categories =
+        ref.read(categoriesProvider).value ?? const <Category>[];
     setState(() {
       _type = newType;
-      if (_categoryId != null) {
-        final bool stillValid =
-            ref
-                .read(categoriesProvider)
-                .value
-                ?.any(
-                  (Category category) =>
-                      category.id == _categoryId && category.type == newType,
-                ) ??
-            false;
-        if (!stillValid) {
-          _categoryId = null;
-        }
-      }
+      _categoryId = validCategoryId(_categoryId, newType, categories);
     });
   }
 
@@ -94,6 +90,15 @@ class _CaptureSheetState extends ConsumerState<CaptureSheet> {
   Future<void> _save() async {
     final int amount = parseCurrencyInput(_amountController.text);
     final List<Wallet> wallets = ref.read(walletsProvider).value ?? <Wallet>[];
+    if (wallets.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Dompet belum tersedia.')));
+      return;
+    }
+    final List<Category> categories =
+        ref.read(categoriesProvider).value ?? const <Category>[];
+    final int? categoryId = validCategoryId(_categoryId, _type, categories);
     final Wallet wallet = resolveWallet(wallets, preferredId: _walletId);
     final String note = _noteController.text.trim();
 
@@ -103,7 +108,7 @@ class _CaptureSheetState extends ConsumerState<CaptureSheet> {
           amount: amount,
           type: _type,
           walletId: wallet.id,
-          categoryId: _categoryId,
+          categoryId: categoryId,
           note: note.isEmpty ? null : note,
         );
 
