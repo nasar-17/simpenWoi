@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/transaction_values.dart';
-import '../../../../core/constants/ui_text.dart';
 
 class TransactionTypeSelector extends StatelessWidget {
   const TransactionTypeSelector({
@@ -16,16 +15,19 @@ class TransactionTypeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton<String>(
+      showSelectedIcon: false,
       segments: const <ButtonSegment<String>>[
         ButtonSegment<String>(
           value: TransactionType.expense,
-          label: Text(UiText.expense),
-          icon: Icon(Icons.trending_down),
+          label: Text('Keluar'),
         ),
         ButtonSegment<String>(
           value: TransactionType.income,
-          label: Text(UiText.income),
-          icon: Icon(Icons.trending_up),
+          label: Text('Masuk'),
+        ),
+        ButtonSegment<String>(
+          value: TransactionType.transfer,
+          label: Text('Transfer'),
         ),
       ],
       selected: <String>{type},

@@ -109,6 +109,29 @@ class CaptureNotifier(private val context: Context) {
         )
     }
 
+    fun showTransferSaved(capture: PendingCapture) {
+        ensureChannel()
+        val builder = baseBuilder()
+            .setWhen(capture.postedAt)
+            .setContentTitle(CaptureNotificationText.transferSavedTitle(capture))
+            .setContentText(CaptureNotificationText.SAVED_BODY)
+            .setContentIntent(CaptureNotificationIntents.openApp(context, capture.id))
+            .setAutoCancel(true)
+            .setTimeoutAfter(CaptureNotificationContract.QUESTION_TIMEOUT_MS)
+            .setGroup(CaptureNotificationContract.GROUP_KEY)
+            .addAction(
+                NotificationCompat.Action.Builder(
+                    android.R.drawable.ic_menu_close_clear_cancel,
+                    CaptureNotificationText.UNPAIR_ACTION,
+                    CaptureNotificationIntents.unpair(context, capture.id),
+                ).build(),
+            )
+        notifySafely(
+            CaptureNotificationIntents.notificationId(capture.id),
+            builder.build(),
+        )
+    }
+
     fun showSummary(count: Int) {
         ensureChannel()
         val manager = NotificationManagerCompat.from(context)

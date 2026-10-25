@@ -32,6 +32,26 @@ Wallet resolveWalletForPackage(List<Wallet> wallets, String sourcePackage) {
   return resolveWallet(wallets);
 }
 
+Wallet? resolveTransferWallet(
+  List<Wallet> wallets, {
+  int? preferredId,
+  required int sourceId,
+}) {
+  if (preferredId != null && preferredId != sourceId) {
+    for (final Wallet wallet in wallets) {
+      if (wallet.id == preferredId) {
+        return wallet;
+      }
+    }
+  }
+  for (final Wallet wallet in wallets) {
+    if (wallet.id != sourceId) {
+      return wallet;
+    }
+  }
+  return null;
+}
+
 int totalWalletBalance(Iterable<Wallet> wallets) {
   int total = 0;
   for (final Wallet wallet in wallets) {

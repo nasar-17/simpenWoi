@@ -9,6 +9,11 @@ data class PendingCapture(
     val direction: String,
     val categoryId: Int?,
     val note: String?,
+    val isTransfer: Boolean = false,
+    val pairId: Long? = null,
+    val merged: Boolean = false,
+    val transferSourcePackage: String? = null,
+    val transferDestinationPackage: String? = null,
 )
 
 data class CaptureCategory(
@@ -42,6 +47,10 @@ fun PendingCapture.toMap(): Map<String, Any?> = mapOf(
     "direction" to direction,
     "category_id" to categoryId,
     "note" to note,
+    "is_transfer" to isTransfer,
+    "pair_id" to pairId,
+    "transfer_source_package" to transferSourcePackage,
+    "transfer_destination_package" to transferDestinationPackage,
 )
 
 fun DirtyCapture.toMap(): Map<String, Any?> = mapOf(

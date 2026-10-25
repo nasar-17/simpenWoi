@@ -51,8 +51,8 @@ Future<bool> syncTransactionMerchantRule(
         .into(database.merchantRules)
         .insert(
           MerchantRulesCompanion.insert(
-            merchant: newKey!,
-            categoryId: newCategoryId!,
+            merchant: newKey,
+            categoryId: newCategoryId,
             useCount: const Value<int>(1),
           ),
         );
@@ -61,7 +61,7 @@ Future<bool> syncTransactionMerchantRule(
       database.merchantRules,
     )..where((table) => table.id.equals(existing.id))).write(
       MerchantRulesCompanion(
-        categoryId: Value<int>(newCategoryId!),
+        categoryId: Value<int>(newCategoryId),
         useCount: Value<int>(existing.useCount + 1),
       ),
     );

@@ -12,11 +12,13 @@ class WalletDropdown extends ConsumerWidget {
     required this.preferredId,
     required this.onChanged,
     this.isDense = false,
+    this.label = 'Dompet',
   });
 
   final int? preferredId;
   final ValueChanged<int> onChanged;
   final bool isDense;
+  final String label;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +46,7 @@ class WalletDropdown extends ConsumerWidget {
         return DropdownButtonFormField<int>(
           key: ValueKey<int>(selected.id),
           initialValue: selected.id,
-          decoration: InputDecoration(labelText: 'Dompet', isDense: isDense),
+          decoration: InputDecoration(labelText: label, isDense: isDense),
           items: wallets
               .map(
                 (Wallet wallet) => DropdownMenuItem<int>(

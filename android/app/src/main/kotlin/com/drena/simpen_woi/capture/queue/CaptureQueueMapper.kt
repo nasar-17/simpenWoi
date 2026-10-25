@@ -11,6 +11,11 @@ internal fun Cursor.toPendingCapture(): PendingCapture = PendingCapture(
     direction = getString(5),
     categoryId = if (isNull(6)) null else getInt(6),
     note = if (isNull(7)) null else getString(7),
+    isTransfer = getInt(8) != 0,
+    pairId = if (isNull(9)) null else getLong(9),
+    merged = getInt(10) != 0,
+    transferSourcePackage = if (isNull(11)) null else getString(11),
+    transferDestinationPackage = if (isNull(12)) null else getString(12),
 )
 
 internal fun Cursor.toDirtyCapture(): DirtyCapture = DirtyCapture(

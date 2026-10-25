@@ -8,9 +8,8 @@ import 'transaction_writer.dart';
 
 /// Akses baca transaksi, kategori, dan operasi tulis turunan [TransactionWriter].
 class TransactionRepository extends TransactionWriter {
-  TransactionRepository(AppDatabase database)
-    : _queries = TransactionQueries(database),
-      super(database);
+  TransactionRepository(super.database)
+    : _queries = TransactionQueries(database);
 
   final TransactionQueries _queries;
 

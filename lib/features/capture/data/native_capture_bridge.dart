@@ -56,6 +56,21 @@ class NativeCaptureBridge {
     );
   }
 
+  Future<void> syncCapture({
+    required int id,
+    required int? categoryId,
+    required String? note,
+  }) async {
+    await _channel.invokeMethod<void>(
+      CaptureChannel.syncCapture,
+      <String, Object?>{
+        CaptureChannel.ids: <int>[id],
+        CaptureKeys.categoryId: categoryId,
+        CaptureKeys.note: note,
+      },
+    );
+  }
+
   Future<void> pushCategories({
     required List<Map<String, Object?>> categories,
     required List<Map<String, Object?>> topCategories,

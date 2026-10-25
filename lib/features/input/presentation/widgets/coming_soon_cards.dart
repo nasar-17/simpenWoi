@@ -5,8 +5,8 @@ class ComingSoonCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: const <Widget>[
+    return const Row(
+      children: <Widget>[
         Expanded(
           child: _ComingSoonCard(
             icon: Icons.receipt_long_outlined,

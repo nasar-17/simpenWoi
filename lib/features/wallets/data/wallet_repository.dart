@@ -74,8 +74,12 @@ class WalletRepository {
   Future<int> countTransactions(int id) async {
     final QueryRow row = await _database
         .customSelect(
-          'SELECT COUNT(*) AS total FROM transactions WHERE wallet_id = ?',
-          variables: <Variable<Object>>[Variable.withInt(id)],
+          'SELECT COUNT(*) AS total FROM transactions '
+          'WHERE wallet_id = ? OR counterpart_wallet_id = ?',
+          variables: <Variable<Object>>[
+            Variable.withInt(id),
+            Variable.withInt(id),
+          ],
         )
         .getSingle();
     return row.read<int>('total');
@@ -100,6 +104,11 @@ class WalletRepository {
         await (_database.update(_database.transactions)
               ..where((table) => table.walletId.equals(id)))
             .write(TransactionsCompanion(walletId: Value<int>(target.id)));
+        await (_database.update(
+          _database.transactions,
+        )..where((table) => table.counterpartWalletId.equals(id))).write(
+          TransactionsCompanion(counterpartWalletId: Value<int?>(target.id)),
+        );
         await adjustWalletBalance(_database, target.id, wallet.balance);
       }
       final bool wasDefault = wallet.isDefault;

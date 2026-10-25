@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 
 class CaptureQueue private constructor(context: Context) {
-    private val database = CaptureQueueDatabase(context)
+    internal val database = CaptureQueueDatabase(context)
 
     fun insertCapture(
         amount: Long,
@@ -31,7 +31,7 @@ class CaptureQueue private constructor(context: Context) {
         database.readableDatabase.query(
             CaptureQueueSchema.TABLE,
             CaptureQueueSchema.COLUMNS,
-            "status = ?",
+            "status = ? AND merged = 0",
             arrayOf(CaptureQueueSchema.STATUS_PENDING),
             null,
             null,
@@ -63,11 +63,12 @@ class CaptureQueue private constructor(context: Context) {
         if (ids.isEmpty()) return
         val placeholders = ids.joinToString(",") { "?" }
         val values = ContentValues().apply { put("status", CaptureQueueSchema.STATUS_IMPORTED) }
+        val args = ids.map { it.toString() }.toTypedArray()
         database.writableDatabase.update(
             CaptureQueueSchema.TABLE,
             values,
-            "id IN ($placeholders)",
-            ids.map { it.toString() }.toTypedArray(),
+            "id IN ($placeholders) OR pair_id IN ($placeholders)",
+            args + args,
         )
     }
 
@@ -174,7 +175,8 @@ class CaptureQueue private constructor(context: Context) {
     fun countUnanswered(): Int {
         return database.readableDatabase.rawQuery(
             "SELECT COUNT(*) FROM ${CaptureQueueSchema.TABLE} " +
-                "WHERE status = ? AND category_id IS NULL",
+                "WHERE status = ? AND category_id IS NULL " +
+                "AND is_transfer = 0 AND merged = 0",
             arrayOf(CaptureQueueSchema.STATUS_PENDING),
         ).use { cursor ->
             if (cursor.moveToFirst()) cursor.getInt(0) else 0

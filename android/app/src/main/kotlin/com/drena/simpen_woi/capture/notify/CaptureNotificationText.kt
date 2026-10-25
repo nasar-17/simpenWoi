@@ -1,5 +1,6 @@
 package com.drena.simpen_woi.capture.notify
 
+import com.drena.simpen_woi.capture.parser.SupportedApps
 import com.drena.simpen_woi.capture.queue.PendingCapture
 
 internal object CaptureNotificationText {
@@ -13,6 +14,7 @@ internal object CaptureNotificationText {
     const val SUMMARY_BODY = "Buka simpenWoi untuk melengkapi kategori."
     const val REPLY_ACTION = "Ketik"
     const val EDIT_ACTION = "Ubah"
+    const val UNPAIR_ACTION = "Bukan transfer"
     const val DEFAULT_CATEGORY = "Kategori"
 
     fun noteLabel(note: String): String = "Catatan: $note"
@@ -49,6 +51,12 @@ internal object CaptureNotificationText {
         }
         val suffix = if (label.isNotBlank()) " - $label" else ""
         return "Tersimpan: ${incomingTitle(capture)}$suffix"
+    }
+
+    fun transferSavedTitle(capture: PendingCapture): String {
+        val source = SupportedApps.displayName(capture.transferSourcePackage)
+        val destination = SupportedApps.displayName(capture.transferDestinationPackage)
+        return "Transfer ${formatRupiah(capture.amount)}: $source \u2192 $destination tersimpan"
     }
 
     fun summaryTitle(count: Int): String = "$count transaksi belum dikategorikan"

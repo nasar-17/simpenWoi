@@ -13,6 +13,7 @@ internal object CaptureNotificationIntents {
     private const val REQUEST_REPLY = 300000
     private const val REQUEST_UNDO = 400000
     private const val REQUEST_OPEN = 500000
+    private const val REQUEST_UNPAIR = 600000
 
     fun category(
         context: Context,
@@ -57,6 +58,20 @@ internal object CaptureNotificationIntents {
         return PendingIntent.getBroadcast(
             context,
             requestCode(REQUEST_UNDO, captureId),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    fun unpair(context: Context, captureId: Long): PendingIntent {
+        val intent = Intent(context, CaptureActionReceiver::class.java).apply {
+            action = CaptureNotificationContract.ACTION_UNPAIR
+            data = Uri.parse("capture://$captureId/unpair")
+            putExtra(CaptureNotificationContract.EXTRA_CAPTURE_ID, captureId)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode(REQUEST_UNPAIR, captureId),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

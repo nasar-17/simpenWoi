@@ -10,11 +10,19 @@ class TransactionQueries {
   final AppDatabase _database;
 
   Stream<List<TransactionDetail>> watchWhere(Expression<bool> predicate) {
+    final counterpart = _database.alias(
+      _database.wallets,
+      'counterpart_wallet',
+    );
     final query = _database.select(_database.transactions).join(
       <Join<HasResultSet, dynamic>>[
         innerJoin(
           _database.wallets,
           _database.wallets.id.equalsExp(_database.transactions.walletId),
+        ),
+        leftOuterJoin(
+          counterpart,
+          counterpart.id.equalsExp(_database.transactions.counterpartWalletId),
         ),
         leftOuterJoin(
           _database.categories,
@@ -25,7 +33,14 @@ class TransactionQueries {
 
     return query.watch().map((List<TypedResult> rows) {
       final List<TransactionDetail> details = rows
-          .map(mapRow)
+          .map(
+            (TypedResult row) => TransactionDetail(
+              transaction: row.readTable(_database.transactions),
+              wallet: row.readTable(_database.wallets),
+              counterpartWallet: row.readTableOrNull(counterpart),
+              category: row.readTableOrNull(_database.categories),
+            ),
+          )
           .toList(growable: false);
       details.sort((TransactionDetail a, TransactionDetail b) {
         final int byDate = b.transaction.createdAt.compareTo(
@@ -37,13 +52,5 @@ class TransactionQueries {
       });
       return details;
     });
-  }
-
-  TransactionDetail mapRow(TypedResult row) {
-    return TransactionDetail(
-      transaction: row.readTable(_database.transactions),
-      wallet: row.readTable(_database.wallets),
-      category: row.readTableOrNull(_database.categories),
-    );
   }
 }

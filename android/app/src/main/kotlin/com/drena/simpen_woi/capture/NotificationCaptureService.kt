@@ -12,6 +12,7 @@ import com.drena.simpen_woi.capture.parser.CaptureParser
 import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import com.drena.simpen_woi.capture.queue.CaptureExecutor
 import com.drena.simpen_woi.capture.queue.CaptureQueue
+import com.drena.simpen_woi.capture.queue.CaptureTransferStore
 import com.drena.simpen_woi.capture.queue.PendingCapture
 
 class NotificationCaptureService : NotificationListenerService() {
@@ -110,6 +111,9 @@ class NotificationCaptureService : NotificationListenerService() {
             null,
         )
         val notifier = CaptureNotifier(this)
+        if (CaptureTransferStore(queue).tryPair(this, capture)) {
+            return
+        }
         if (rule != null) {
             notifier.showSaved(capture, rule.categoryName)
         } else {

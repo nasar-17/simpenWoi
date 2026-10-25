@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.core.app.RemoteInput
 import com.drena.simpen_woi.capture.queue.CaptureExecutor
 import com.drena.simpen_woi.capture.queue.CaptureQueue
+import com.drena.simpen_woi.capture.queue.CaptureTransferStore
 import com.drena.simpen_woi.capture.queue.PendingCapture
 
 class CaptureActionReceiver : BroadcastReceiver() {
@@ -41,6 +42,10 @@ class CaptureActionReceiver : BroadcastReceiver() {
 
             CaptureNotificationContract.ACTION_UNDO -> {
                 handleUndo(context, queue, capture)
+            }
+
+            CaptureNotificationContract.ACTION_UNPAIR -> {
+                CaptureTransferStore(queue).unpair(context, capture)
             }
         }
     }

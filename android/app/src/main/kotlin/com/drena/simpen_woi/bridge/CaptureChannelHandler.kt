@@ -16,6 +16,7 @@ import com.drena.simpen_woi.capture.notify.CaptureNotifier
 import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import com.drena.simpen_woi.capture.queue.CaptureExecutor
 import com.drena.simpen_woi.capture.queue.CaptureQueue
+import com.drena.simpen_woi.capture.queue.CaptureTransferStore
 import com.drena.simpen_woi.capture.queue.toMap
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -57,6 +58,21 @@ class CaptureChannelHandler(private val activity: Activity) {
                     runAsync(result) {
                         CaptureQueue.getInstance(activity).markSynced(ids)
                         null
+                    }
+                }
+
+                "syncCapture" -> {
+                    val id = call.longListArgument("ids").firstOrNull() ?: 0L
+                    val categoryId = call.argument<Number>("category_id")?.toInt()
+                    val note = call.argument<String>("note")
+                    if (id <= 0L) {
+                        result.success(null)
+                    } else {
+                        runAsync(result) {
+                            CaptureTransferStore(CaptureQueue.getInstance(activity))
+                                .syncAnswer(id, categoryId, note)
+                            null
+                        }
                     }
                 }
 

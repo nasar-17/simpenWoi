@@ -6,6 +6,7 @@ abstract final class CaptureChannel {
   static const String getDirtyCaptures = 'getDirtyCaptures';
   static const String markImported = 'markImported';
   static const String markSynced = 'markSynced';
+  static const String syncCapture = 'syncCapture';
   static const String pushCategories = 'pushCategories';
   static const String pushMerchantRules = 'pushMerchantRules';
   static const String isListenerEnabled = 'isListenerEnabled';
@@ -39,6 +40,11 @@ abstract final class CaptureKeys {
   static const String categoryId = 'category_id';
   static const String categoryName = 'category_name';
   static const String note = 'note';
+  static const String isTransfer = 'is_transfer';
+  static const String pairId = 'pair_id';
+  static const String transferSourcePackage = 'transfer_source_package';
+  static const String transferDestinationPackage =
+      'transfer_destination_package';
 }
 
 /// Kunci payload inspektor notifikasi dari sisi native.

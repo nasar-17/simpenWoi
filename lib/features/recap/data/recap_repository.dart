@@ -24,12 +24,12 @@ class RecapRepository {
     return _database
         .customSelect(
           'SELECT '
-          'COALESCE(SUM(CASE WHEN type = ? THEN 0 ELSE amount END), 0) AS income, '
+          'COALESCE(SUM(CASE WHEN type = ? THEN amount ELSE 0 END), 0) AS income, '
           'COALESCE(SUM(CASE WHEN type = ? THEN amount ELSE 0 END), 0) AS expense '
           'FROM transactions '
           'WHERE created_at >= ? AND created_at < ?',
           variables: <Variable<Object>>[
-            Variable.withString(TransactionType.expense),
+            Variable.withString(TransactionType.income),
             Variable.withString(TransactionType.expense),
             Variable.withDateTime(range.start),
             Variable.withDateTime(range.end),

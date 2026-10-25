@@ -23,7 +23,12 @@ internal class CaptureQueueDatabase(context: Context) : SQLiteOpenHelper(
                 category_id INTEGER,
                 note TEXT,
                 status TEXT NOT NULL DEFAULT '${CaptureQueueSchema.STATUS_PENDING}',
-                dirty INTEGER NOT NULL DEFAULT 0
+                dirty INTEGER NOT NULL DEFAULT 0,
+                is_transfer INTEGER NOT NULL DEFAULT 0,
+                pair_id INTEGER,
+                merged INTEGER NOT NULL DEFAULT 0,
+                transfer_source_package TEXT,
+                transfer_destination_package TEXT
             )
             """.trimIndent(),
         )
@@ -41,6 +46,27 @@ internal class CaptureQueueDatabase(context: Context) : SQLiteOpenHelper(
             db.execSQL(
                 "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN " +
                     "direction TEXT NOT NULL DEFAULT 'OUT'",
+            )
+        }
+        if (oldVersion < 4) {
+            db.execSQL(
+                "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN " +
+                    "is_transfer INTEGER NOT NULL DEFAULT 0",
+            )
+            db.execSQL(
+                "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN pair_id INTEGER",
+            )
+            db.execSQL(
+                "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN " +
+                    "merged INTEGER NOT NULL DEFAULT 0",
+            )
+            db.execSQL(
+                "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN " +
+                    "transfer_source_package TEXT",
+            )
+            db.execSQL(
+                "ALTER TABLE ${CaptureQueueSchema.TABLE} ADD COLUMN " +
+                    "transfer_destination_package TEXT",
             )
         }
     }

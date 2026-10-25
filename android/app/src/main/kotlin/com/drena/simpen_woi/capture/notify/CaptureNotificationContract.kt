@@ -8,6 +8,7 @@ internal object CaptureNotificationContract {
     const val ACTION_CATEGORY = "com.drena.simpen_woi.action.CATEGORY"
     const val ACTION_REPLY = "com.drena.simpen_woi.action.REPLY"
     const val ACTION_UNDO = "com.drena.simpen_woi.action.UNDO"
+    const val ACTION_UNPAIR = "com.drena.simpen_woi.action.UNPAIR"
     const val EXTRA_CAPTURE_ID = "capture_id"
     const val EXTRA_CATEGORY_ID = "category_id"
     const val EXTRA_CATEGORY_NAME = "category_name"

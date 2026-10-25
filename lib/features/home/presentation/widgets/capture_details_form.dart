@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/constants/transaction_values.dart';
 import '../../../../core/utils/currency_input_formatter.dart';
 import 'category_dropdown.dart';
 import 'transaction_type_selector.dart';
+import 'wallet_dropdown.dart';
 
 class CaptureDetailsForm extends StatelessWidget {
   const CaptureDetailsForm({
@@ -14,6 +16,8 @@ class CaptureDetailsForm extends StatelessWidget {
     required this.categoryId,
     required this.onTypeChanged,
     required this.onCategoryChanged,
+    this.counterpartWalletId,
+    this.onCounterpartWalletChanged,
   });
 
   final TextEditingController amountController;
@@ -22,6 +26,8 @@ class CaptureDetailsForm extends StatelessWidget {
   final int? categoryId;
   final ValueChanged<String> onTypeChanged;
   final ValueChanged<int?> onCategoryChanged;
+  final int? counterpartWalletId;
+  final ValueChanged<int>? onCounterpartWalletChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +48,18 @@ class CaptureDetailsForm extends StatelessWidget {
             const SizedBox(height: 12),
             TransactionTypeSelector(type: type, onChanged: onTypeChanged),
             const SizedBox(height: 12),
-            CategoryDropdown(
-              type: type,
-              initialValue: categoryId,
-              onChanged: onCategoryChanged,
-            ),
+            if (type == TransactionType.transfer)
+              WalletDropdown(
+                preferredId: counterpartWalletId,
+                label: 'Dompet tujuan',
+                onChanged: onCounterpartWalletChanged!,
+              )
+            else
+              CategoryDropdown(
+                type: type,
+                initialValue: categoryId,
+                onChanged: onCategoryChanged,
+              ),
             const SizedBox(height: 12),
             TextField(
               controller: noteController,

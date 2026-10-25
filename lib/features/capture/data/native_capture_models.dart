@@ -11,6 +11,10 @@ class NativeCapture {
     required this.direction,
     required this.categoryId,
     required this.note,
+    this.isTransfer = false,
+    this.pairId,
+    this.transferSourcePackage,
+    this.transferDestinationPackage,
   });
 
   factory NativeCapture.fromMap(Map<Object?, Object?> map) {
@@ -27,6 +31,11 @@ class NativeCapture {
           map[CaptureKeys.direction] as String? ?? CaptureDirection.outgoing,
       categoryId: (map[CaptureKeys.categoryId] as num?)?.toInt(),
       note: map[CaptureKeys.note] as String?,
+      isTransfer: map[CaptureKeys.isTransfer] as bool? ?? false,
+      pairId: (map[CaptureKeys.pairId] as num?)?.toInt(),
+      transferSourcePackage: map[CaptureKeys.transferSourcePackage] as String?,
+      transferDestinationPackage:
+          map[CaptureKeys.transferDestinationPackage] as String?,
     );
   }
 
@@ -38,6 +47,10 @@ class NativeCapture {
   final String direction;
   final int? categoryId;
   final String? note;
+  final bool isTransfer;
+  final int? pairId;
+  final String? transferSourcePackage;
+  final String? transferDestinationPackage;
 }
 
 class InspectorEntry {

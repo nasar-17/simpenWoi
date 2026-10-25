@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/ui_text.dart';
+import '../../../../core/constants/transaction_values.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency.dart';
 import '../../../../core/utils/currency_input_formatter.dart';
@@ -11,9 +10,7 @@ import '../../../categories/domain/category_selection.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../../../wallets/domain/wallet_resolver.dart';
 import '../../../wallets/presentation/providers/wallet_providers.dart';
-import 'category_dropdown.dart';
-import 'transaction_type_selector.dart';
-import 'wallet_dropdown.dart';
+import 'transaction_editor_form.dart';
 
 class TransactionEditorSheet extends ConsumerStatefulWidget {
   const TransactionEditorSheet({super.key, required this.transaction});
@@ -33,6 +30,8 @@ class _TransactionEditorSheetState
   late String _type;
   late int? _categoryId;
   late int _walletId;
+  int? _counterpartWalletId;
+  late bool _excludeFromTarget;
 
   @override
   void initState() {
@@ -48,6 +47,8 @@ class _TransactionEditorSheetState
     _type = transaction.type;
     _categoryId = transaction.categoryId;
     _walletId = transaction.walletId;
+    _counterpartWalletId = transaction.counterpartWalletId;
+    _excludeFromTarget = transaction.excludeFromTarget;
   }
 
   @override
@@ -61,9 +62,22 @@ class _TransactionEditorSheetState
   void _onTypeChanged(String newType) {
     final List<Category> categories =
         ref.read(categoriesProvider).value ?? const <Category>[];
+    final List<Wallet> wallets = ref.read(walletsProvider).value ?? <Wallet>[];
     setState(() {
       _type = newType;
       _categoryId = validCategoryId(_categoryId, newType, categories);
+      if (newType != TransactionType.expense) {
+        _excludeFromTarget = false;
+      }
+      if (newType == TransactionType.transfer && wallets.isNotEmpty) {
+        _counterpartWalletId = resolveTransferWallet(
+          wallets,
+          preferredId: _counterpartWalletId,
+          sourceId: _walletId,
+        )?.id;
+      } else {
+        _counterpartWalletId = null;
+      }
     });
   }
 
@@ -89,6 +103,16 @@ class _TransactionEditorSheetState
     final Wallet wallet = resolveWallet(wallets, preferredId: _walletId);
     final String note = _noteController.text.trim();
     final String merchant = _merchantController.text.trim();
+    final int? counterpartWalletId = _type == TransactionType.transfer
+        ? _counterpartWalletId
+        : null;
+    if (_type == TransactionType.transfer &&
+        (counterpartWalletId == null || counterpartWalletId == wallet.id)) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Pilih dompet tujuan yang berbeda.')),
+      );
+      return;
+    }
 
     try {
       final bool rulesChanged = await ref
@@ -98,15 +122,29 @@ class _TransactionEditorSheetState
             amount: amount,
             type: _type,
             walletId: wallet.id,
-            counterpartWalletId: widget.transaction.counterpartWalletId,
+            counterpartWalletId: counterpartWalletId,
             categoryId: categoryId,
             note: note.isEmpty ? null : note,
-            merchant: merchant.isEmpty ? null : merchant,
-            excludeFromTarget: widget.transaction.excludeFromTarget,
+            merchant: _type == TransactionType.transfer
+                ? null
+                : (merchant.isEmpty ? null : merchant),
+            excludeFromTarget: _excludeFromTarget,
           );
-      if (rulesChanged) {
-        await ref.read(captureSyncServiceProvider).refreshNativeContext();
-      }
+      try {
+        final int? nativeCaptureId = widget.transaction.nativeCaptureId;
+        if (nativeCaptureId != null) {
+          await ref
+              .read(captureSyncServiceProvider)
+              .syncEditedCapture(
+                nativeCaptureId: nativeCaptureId,
+                categoryId: categoryId,
+                note: note.isEmpty ? null : note,
+              );
+        }
+        if (rulesChanged) {
+          await ref.read(captureSyncServiceProvider).refreshNativeContext();
+        }
+      } on Exception catch (_) {}
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -119,79 +157,45 @@ class _TransactionEditorSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'Edit transaksi',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              inputFormatters: const <TextInputFormatter>[
-                CurrencyInputFormatter(),
-              ],
-              decoration: const InputDecoration(labelText: 'Nominal (Rp)'),
-            ),
-            const SizedBox(height: 12),
-            TransactionTypeSelector(type: _type, onChanged: _onTypeChanged),
-            const SizedBox(height: 12),
-            CategoryDropdown(
-              type: _type,
-              initialValue: _categoryId,
-              onChanged: (int? value) {
-                setState(() {
-                  _categoryId = value;
-                });
-              },
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _noteController,
-              decoration: const InputDecoration(labelText: 'Catatan'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _merchantController,
-              decoration: const InputDecoration(
-                labelText: 'Merchant (opsional)',
-              ),
-            ),
-            const SizedBox(height: 12),
-            WalletDropdown(
-              preferredId: _walletId,
-              onChanged: (int value) {
-                setState(() {
-                  _walletId = value;
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(UiText.cancel),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(onPressed: _save, child: const Text(UiText.save)),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return TransactionEditorForm(
+      amountController: _amountController,
+      noteController: _noteController,
+      merchantController: _merchantController,
+      type: _type,
+      categoryId: _categoryId,
+      walletId: _walletId,
+      counterpartWalletId: _counterpartWalletId,
+      excludeFromTarget: _excludeFromTarget,
+      onTypeChanged: _onTypeChanged,
+      onCategoryChanged: (int? value) {
+        setState(() {
+          _categoryId = value;
+        });
+      },
+      onCounterpartWalletChanged: (int value) {
+        setState(() {
+          _counterpartWalletId = value;
+        });
+      },
+      onExcludeFromTargetChanged: (bool value) {
+        setState(() {
+          _excludeFromTarget = value;
+        });
+      },
+      onWalletChanged: (int value) {
+        setState(() {
+          _walletId = value;
+          if (_type == TransactionType.transfer &&
+              _counterpartWalletId == value) {
+            _counterpartWalletId = resolveTransferWallet(
+              ref.read(walletsProvider).value ?? <Wallet>[],
+              sourceId: value,
+            )?.id;
+          }
+        });
+      },
+      onSave: _save,
+      onCancel: () => Navigator.of(context).pop(),
     );
   }
 }

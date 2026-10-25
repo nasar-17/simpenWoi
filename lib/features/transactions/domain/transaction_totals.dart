@@ -17,7 +17,7 @@ TransactionTotals summarizeTransactions(
   for (final TransactionDetail detail in transactions) {
     if (detail.transaction.type == TransactionType.expense) {
       expense += detail.transaction.amount;
-    } else {
+    } else if (detail.transaction.type == TransactionType.income) {
       income += detail.transaction.amount;
     }
   }

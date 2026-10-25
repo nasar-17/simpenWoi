@@ -53,9 +53,29 @@ class CaptureSyncService {
       merchant: record.merchant,
       excludeFromTarget: record.excludeFromTarget,
     );
+    final int? nativeCaptureId = record.nativeCaptureId;
+    if (nativeCaptureId != null) {
+      await importer.syncEditedCapture(
+        nativeCaptureId: nativeCaptureId,
+        categoryId: categoryId,
+        note: record.note,
+      );
+    }
     if (rulesChanged) {
       await refreshNativeContext();
     }
+  }
+
+  Future<void> syncEditedCapture({
+    required int nativeCaptureId,
+    required int? categoryId,
+    required String? note,
+  }) {
+    return importer.syncEditedCapture(
+      nativeCaptureId: nativeCaptureId,
+      categoryId: categoryId,
+      note: note,
+    );
   }
 
   Future<void> recordMerchantUsage(String? merchant, int categoryId) async {

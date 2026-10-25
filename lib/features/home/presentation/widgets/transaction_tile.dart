@@ -22,7 +22,16 @@ class TransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
     final bool isExpense = detail.transaction.type == TransactionType.expense;
+    final bool isTransfer = detail.transaction.type == TransactionType.transfer;
     final Color amountColor = isExpense ? scheme.error : scheme.primary;
+    final String sign = isTransfer ? '' : (isExpense ? '-' : '+');
+    final String title = isTransfer
+        ? 'Transfer'
+        : detail.category?.name ?? UiText.noCategory;
+    final String walletText = isTransfer
+        ? '${detail.wallet.name} \u2192 '
+              '${detail.counterpartWallet?.name ?? '-'}'
+        : detail.wallet.name;
 
     return Dismissible(
       key: ValueKey<int>(detail.transaction.id),
@@ -37,10 +46,10 @@ class TransactionTile extends StatelessWidget {
       child: Card(
         margin: const EdgeInsets.only(bottom: 8),
         child: ListTile(
-          title: Text(
-            detail.category?.name ?? UiText.noCategory,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          leading: isTransfer
+              ? Icon(Icons.swap_horiz, color: scheme.primary)
+              : null,
+          title: Text(title, style: Theme.of(context).textTheme.titleMedium),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Wrap(
@@ -49,13 +58,13 @@ class TransactionTile extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
                 Text(
-                  '${detail.wallet.name} \u2022 '
+                  '$walletText \u2022 '
                   '${formatClockTime(detail.transaction.createdAt)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
                 ),
-                if (!detail.transaction.isCategorized)
+                if (!isTransfer && !detail.transaction.isCategorized)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -76,8 +85,7 @@ class TransactionTile extends StatelessWidget {
             ),
           ),
           trailing: Text(
-            '${isExpense ? '-' : '+'}'
-            '${formatRupiah(detail.transaction.amount)}',
+            '$sign${formatRupiah(detail.transaction.amount)}',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: amountColor,
