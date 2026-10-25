@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,10 +21,18 @@ class SimpenWoiApp extends ConsumerStatefulWidget {
 
 class _SimpenWoiAppState extends ConsumerState<SimpenWoiApp>
     with WidgetsBindingObserver {
+  StreamSubscription<void>? _captureEvents;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _captureEvents = ref.read(nativeCaptureBridgeProvider).captureEvents.listen(
+      (void _) {
+        _syncCaptures();
+      },
+      onError: (Object _) {},
+    );
     WidgetsBinding.instance.addPostFrameCallback((Duration timeStamp) {
       _syncCaptures();
     });
@@ -30,6 +40,7 @@ class _SimpenWoiAppState extends ConsumerState<SimpenWoiApp>
 
   @override
   void dispose() {
+    _captureEvents?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

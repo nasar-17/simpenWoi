@@ -1,6 +1,7 @@
 /// Nama channel dan method yang dipakai jembatan capture.
 abstract final class CaptureChannel {
   static const String name = 'simpenwoi/capture';
+  static const String events = 'simpenwoi/capture_events';
 
   static const String getPendingCaptures = 'getPendingCaptures';
   static const String getDirtyCaptures = 'getDirtyCaptures';

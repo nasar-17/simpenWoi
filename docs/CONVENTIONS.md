@@ -41,11 +41,16 @@ lib/
 - Transfer disimpan sebagai satu baris `type = transfer` dengan `counterpart_wallet_id`; jangan membuat dua baris transaksi.
 - Index transaksi: `created_at`, `wallet_id`, `category_id`, `is_categorized`.
 - Setelah mengubah tabel: `dart run build_runner build --delete-conflicting-outputs`.
+- Query `customSelect(...).watch()` wajib menyertakan `readsFrom` untuk semua tabel
+  yang dibaca; tanpa itu Drift tidak memicu stream saat data berubah.
+- Provider data periode memakai `StreamProvider.autoDispose.family` agar query lama
+  dilepas saat periode berubah. Jangan membuat stream baru di dalam `build()`.
+- Agregat rekap memakai `SUM`/`GROUP BY` di SQL; jangan memuat semua transaksi ke Dart.
 ## Kotlin/Android
 ```
 com.drena.simpen_woi/
   MainActivity.kt
-  bridge/               # MethodChannel
+  bridge/               # MethodChannel + EventChannel
   capture/
     NotificationCaptureService.kt
     CaptureSimulator.kt
@@ -59,4 +64,10 @@ com.drena.simpen_woi/
 - Operasi database/notifikasi tidak di main thread; gunakan `CaptureExecutor`.
 - Antrean capture memakai singleton `CaptureQueue.getInstance(context)`.
 - Pemasangan dan pembatalan transfer ada di `CaptureTransferStore`; jangan menaruh aturan pasangan di service atau receiver.
+- Service dan receiver mengirim event antrean ringan melalui
+  `CaptureEventChannel` setelah antrean berubah. Kirim di main looper, jangan
+  sertakan isi notifikasi, dan aman bila sink Flutter tidak aktif.
+- Flutter mendengarkan `simpenwoi/capture_events` lalu memanggil
+  `CaptureSyncService.sync()` yang sama dengan jalur start/resume. Jangan
+  menambah jalur impor terpisah; guard `sync()` mencegah impor bersamaan.
 - Pertahankan nama paket simulator dan nama tabel/kolom antrean.

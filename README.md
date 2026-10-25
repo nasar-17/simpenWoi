@@ -47,8 +47,9 @@ docs/
   CONVENTIONS.md          # struktur dan aturan kontribusi
 android/
   app/src/main/kotlin/com/drena/simpen_woi/
-    MainActivity.kt                 # MethodChannel simpenwoi/capture
-    bridge/CaptureChannelHandler.kt # handler channel native
+    MainActivity.kt                 # pemasangan channel capture
+    bridge/CaptureChannelHandler.kt # handler MethodChannel native
+    bridge/CaptureEventChannel.kt   # EventChannel perubahan antrean
     capture/
       NotificationCaptureService.kt # NotificationListenerService
       CaptureSimulator.kt           # simulasi debug
@@ -69,9 +70,12 @@ android/
 
 Notifikasi transaksi keluar dari aplikasi yang dipantau akan dicatat ke antrean
 lokal. simpenWoi menampilkan notifikasi `Rp25.000 di Warung Bu Tini` dengan
-tombol kategori teratas dan opsi **Ketik** untuk catatan. Saat aplikasi dibuka
-kembali, antrean diimpor menjadi transaksi. Aturan merchant dipakai setelah
-kategori yang sama dipilih minimal dua kali.
+tombol kategori teratas dan opsi **Ketik** untuk catatan. Selama aplikasi
+terbuka, perubahan antrean (capture baru, hasil pasangan transfer, atau kategori
+dari notifikasi) dikirim ke Flutter melalui EventChannel dan langsung
+disinkronkan. Saat aplikasi dibuka kembali, impor tetap dijalankan sebagai
+cadangan. Aturan merchant dipakai setelah kategori yang sama dipilih minimal dua
+kali.
 
 Notifikasi keluar dan masuk dengan nominal sama dari aplikasi berbeda dalam
 10 menit dipasangkan menjadi satu transfer. simpenWoi menampilkan notifikasi
