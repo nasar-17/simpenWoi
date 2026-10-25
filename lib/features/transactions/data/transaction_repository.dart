@@ -2,34 +2,34 @@ import 'package:drift/drift.dart';
 
 import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
-import '../../wallets/domain/wallet_balance.dart';
 import 'transaction_detail.dart';
 import 'transaction_queries.dart';
+import 'transaction_writer.dart';
 
-/// Akses data transaksi, kategori, dan penyesuaian saldo dompet.
-class TransactionRepository {
-  TransactionRepository(this._database)
-    : _queries = TransactionQueries(_database);
+/// Akses baca transaksi, kategori, dan operasi tulis turunan [TransactionWriter].
+class TransactionRepository extends TransactionWriter {
+  TransactionRepository(AppDatabase database)
+    : _queries = TransactionQueries(database),
+      super(database);
 
-  final AppDatabase _database;
   final TransactionQueries _queries;
 
   Stream<List<TransactionDetail>> watchBetween(DateTime start, DateTime end) {
     return _queries.watchWhere(
-      _database.transactions.createdAt.isBiggerOrEqualValue(start) &
-          _database.transactions.createdAt.isSmallerThanValue(end),
+      database.transactions.createdAt.isBiggerOrEqualValue(start) &
+          database.transactions.createdAt.isSmallerThanValue(end),
     );
   }
 
   Stream<List<TransactionDetail>> watchUncategorized() {
     return _queries.watchWhere(
-      _database.transactions.isCategorized.equals(false),
+      database.transactions.isCategorized.equals(false),
     );
   }
 
   Future<List<Category>> getCategories() async {
-    final List<Category> categories = await _database
-        .select(_database.categories)
+    final List<Category> categories = await database
+        .select(database.categories)
         .get();
     categories.sort((Category a, Category b) => a.id.compareTo(b.id));
     return categories;
@@ -43,8 +43,8 @@ class TransactionRepository {
   }
 
   Stream<List<Category>> watchCategories() {
-    return _database
-        .select(_database.categories)
+    return database
+        .select(database.categories)
         .watch()
         .map(
           (List<Category> categories) =>
@@ -54,7 +54,7 @@ class TransactionRepository {
   }
 
   Future<List<int>> topCategoryIds(String type, {int limit = 2}) async {
-    final List<QueryRow> rows = await _database
+    final List<QueryRow> rows = await database
         .customSelect(
           'SELECT t.category_id, COUNT(*) AS usage_count '
           'FROM transactions t '
@@ -74,116 +74,12 @@ class TransactionRepository {
         .toList(growable: false);
   }
 
-  Future<int> addTransaction({
-    required int amount,
-    required String type,
-    required int walletId,
-    int? categoryId,
-    String? note,
-    String? merchant,
-    String source = TransactionSource.manual,
-    DateTime? createdAt,
-    int? nativeCaptureId,
-  }) {
-    return _database.transaction(() async {
-      final int id = await _database
-          .into(_database.transactions)
-          .insert(
-            TransactionsCompanion.insert(
-              amount: amount,
-              type: type,
-              walletId: walletId,
-              categoryId: Value<int?>(categoryId),
-              note: Value<String?>(note),
-              merchant: Value<String?>(merchant),
-              source: Value<String>(source),
-              createdAt: Value<DateTime>(createdAt ?? DateTime.now()),
-              isCategorized: Value<bool>(categoryId != null),
-              nativeCaptureId: Value<int?>(nativeCaptureId),
-            ),
-          );
-      await adjustWalletBalance(
-        _database,
-        walletId,
-        balanceDelta(type: type, amount: amount),
-      );
-      return id;
-    });
-  }
-
   Future<TransactionRecord?> getByNativeCaptureId(int nativeCaptureId) async {
     final List<TransactionRecord> records =
-        await (_database.select(_database.transactions)
+        await (database.select(database.transactions)
               ..where((table) => table.nativeCaptureId.equals(nativeCaptureId))
               ..limit(1))
             .get();
     return records.isEmpty ? null : records.first;
-  }
-
-  Future<void> updateTransaction({
-    required int id,
-    required int amount,
-    required String type,
-    required int walletId,
-    int? categoryId,
-    String? note,
-    String? merchant,
-  }) {
-    return _database.transaction(() async {
-      final TransactionRecord? original = await (_database.select(
-        _database.transactions,
-      )..where((table) => table.id.equals(id))).getSingleOrNull();
-      if (original == null) {
-        return;
-      }
-
-      final int oldDelta = balanceDelta(
-        type: original.type,
-        amount: original.amount,
-      );
-      final int newDelta = balanceDelta(type: type, amount: amount);
-
-      if (original.walletId == walletId) {
-        await adjustWalletBalance(_database, walletId, newDelta - oldDelta);
-      } else {
-        await adjustWalletBalance(_database, original.walletId, -oldDelta);
-        await adjustWalletBalance(_database, walletId, newDelta);
-      }
-
-      await (_database.update(
-        _database.transactions,
-      )..where((table) => table.id.equals(id))).write(
-        TransactionsCompanion(
-          amount: Value<int>(amount),
-          type: Value<String>(type),
-          walletId: Value<int>(walletId),
-          categoryId: Value<int?>(categoryId),
-          note: Value<String?>(note),
-          merchant: Value<String?>(merchant),
-          isCategorized: Value<bool>(categoryId != null),
-        ),
-      );
-    });
-  }
-
-  Future<TransactionRecord?> deleteTransaction(int id) {
-    return _database.transaction(() async {
-      final TransactionRecord? record = await (_database.select(
-        _database.transactions,
-      )..where((table) => table.id.equals(id))).getSingleOrNull();
-      if (record == null) {
-        return null;
-      }
-
-      await (_database.delete(
-        _database.transactions,
-      )..where((table) => table.id.equals(id))).go();
-      await adjustWalletBalance(
-        _database,
-        record.walletId,
-        -balanceDelta(type: record.type, amount: record.amount),
-      );
-      return record;
-    });
   }
 }

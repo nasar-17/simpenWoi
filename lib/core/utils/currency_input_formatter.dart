@@ -34,5 +34,6 @@ class CurrencyInputFormatter extends TextInputFormatter {
 }
 
 int parseCurrencyInput(String value) {
-  return int.tryParse(value.replaceAll('.', '').trim()) ?? 0;
+  final String digits = value.replaceAll(RegExp(r'[^\d]'), '');
+  return int.tryParse(digits) ?? 0;
 }

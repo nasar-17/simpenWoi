@@ -30,6 +30,17 @@ MigrationStrategy buildMigrationStrategy(AppDatabase database) {
           database.categories.keywords,
         );
       }
+      if (from < 7) {
+        await migrator.addColumn(
+          database.transactions,
+          database.transactions.counterpartWalletId,
+        );
+        await migrator.addColumn(
+          database.transactions,
+          database.transactions.excludeFromTarget,
+        );
+        await migrator.createTable(database.spendingTargets);
+      }
     },
     beforeOpen: (OpeningDetails details) async {
       await database.customStatement('PRAGMA foreign_keys = ON');

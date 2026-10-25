@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/transaction_values.dart';
 import '../../../../core/constants/ui_text.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/currency.dart';
@@ -40,7 +39,7 @@ class _TransactionEditorSheetState
     super.initState();
     final TransactionRecord transaction = widget.transaction;
     _amountController = TextEditingController(
-      text: formatRupiah(transaction.amount),
+      text: formatRupiahDigits(transaction.amount),
     );
     _noteController = TextEditingController(text: transaction.note ?? '');
     _merchantController = TextEditingController(
@@ -69,15 +68,19 @@ class _TransactionEditorSheetState
   }
 
   Future<void> _save() async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     final int amount = parseCurrencyInput(_amountController.text);
     if (amount <= 0) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Nominal harus lebih dari 0.')),
+      );
       return;
     }
     final List<Wallet> wallets = ref.read(walletsProvider).value ?? <Wallet>[];
     if (wallets.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Dompet belum tersedia.')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Dompet belum tersedia.')),
+      );
       return;
     }
     final List<Category> categories =
@@ -87,26 +90,30 @@ class _TransactionEditorSheetState
     final String note = _noteController.text.trim();
     final String merchant = _merchantController.text.trim();
 
-    await ref
-        .read(transactionRepositoryProvider)
-        .updateTransaction(
-          id: widget.transaction.id,
-          amount: amount,
-          type: _type,
-          walletId: wallet.id,
-          categoryId: categoryId,
-          note: note.isEmpty ? null : note,
-          merchant: merchant.isEmpty ? null : merchant,
-        );
-
-    if (categoryId != null && _type == TransactionType.expense) {
-      await ref
-          .read(captureSyncServiceProvider)
-          .recordMerchantUsage(merchant.isEmpty ? null : merchant, categoryId);
-    }
-
-    if (mounted) {
-      Navigator.of(context).pop();
+    try {
+      final bool rulesChanged = await ref
+          .read(transactionRepositoryProvider)
+          .updateTransaction(
+            id: widget.transaction.id,
+            amount: amount,
+            type: _type,
+            walletId: wallet.id,
+            counterpartWalletId: widget.transaction.counterpartWalletId,
+            categoryId: categoryId,
+            note: note.isEmpty ? null : note,
+            merchant: merchant.isEmpty ? null : merchant,
+            excludeFromTarget: widget.transaction.excludeFromTarget,
+          );
+      if (rulesChanged) {
+        await ref.read(captureSyncServiceProvider).refreshNativeContext();
+      }
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Gagal menyimpan transaksi.')),
+      );
     }
   }
 

@@ -45,6 +45,7 @@ class NotificationCaptureService : NotificationListenerService() {
     private fun handle(sbn: StatusBarNotification) {
         val sourcePackage = sbn.packageName ?: return
         if (sourcePackage == applicationContext.packageName) return
+        if (sourcePackage == CaptureSimulator.SIMULATOR_PACKAGE) return
 
         val extras = sbn.notification?.extras
         val title = extras?.getCharSequence(Notification.EXTRA_TITLE)?.toString()

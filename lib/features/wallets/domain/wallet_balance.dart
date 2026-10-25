@@ -7,6 +7,28 @@ int balanceDelta({required String type, required int amount}) {
   return type == TransactionType.income ? amount : -amount;
 }
 
+Future<void> applyTransactionEffect(
+  AppDatabase database, {
+  required int amount,
+  required String type,
+  required int walletId,
+  int? counterpartWalletId,
+  required int sign,
+}) async {
+  if (type == TransactionType.transfer) {
+    await adjustWalletBalance(database, walletId, -amount * sign);
+    if (counterpartWalletId != null) {
+      await adjustWalletBalance(database, counterpartWalletId, amount * sign);
+    }
+    return;
+  }
+  await adjustWalletBalance(
+    database,
+    walletId,
+    balanceDelta(type: type, amount: amount) * sign,
+  );
+}
+
 Future<void> adjustWalletBalance(
   AppDatabase database,
   int walletId,

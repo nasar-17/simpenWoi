@@ -6,7 +6,6 @@ import '../../wallets/domain/wallet_resolver.dart';
 import '../domain/capture_category_resolver.dart';
 import '../domain/capture_direction.dart';
 import 'capture_context_pusher.dart';
-import 'merchant_rule_repository.dart';
 import 'native_capture_bridge.dart';
 import 'native_capture_models.dart';
 
@@ -16,14 +15,12 @@ class CaptureImporter {
     required this.bridge,
     required this.transactionRepository,
     required this.walletRepository,
-    required this.merchantRuleRepository,
     required this.contextPusher,
   });
 
   final NativeCaptureBridge bridge;
   final TransactionRepository transactionRepository;
   final WalletRepository walletRepository;
-  final MerchantRuleRepository merchantRuleRepository;
   final CaptureContextPusher contextPusher;
 
   Future<void> importPending() async {
@@ -66,7 +63,6 @@ class CaptureImporter {
       if (!incoming && categoryId != null && capture.categoryId != null) {
         final String? merchant = capture.merchant?.trim();
         if (merchant != null && merchant.isNotEmpty) {
-          await merchantRuleRepository.recordUsage(merchant, categoryId);
           rulesChanged = true;
         }
       }
@@ -105,25 +101,18 @@ class CaptureImporter {
       );
       final String? note = dirty.note;
       if (categoryId != record.categoryId || note != record.note) {
-        await transactionRepository.updateTransaction(
+        final bool ruleChanged = await transactionRepository.updateTransaction(
           id: record.id,
           amount: record.amount,
           type: record.type,
           walletId: record.walletId,
+          counterpartWalletId: record.counterpartWalletId,
           categoryId: categoryId,
           note: note,
           merchant: record.merchant,
+          excludeFromTarget: record.excludeFromTarget,
         );
-
-        final String? merchant = record.merchant?.trim();
-        if (record.type == TransactionType.expense &&
-            categoryId != null &&
-            categoryId != record.categoryId &&
-            merchant != null &&
-            merchant.isNotEmpty) {
-          await merchantRuleRepository.recordUsage(merchant, categoryId);
-          rulesChanged = true;
-        }
+        rulesChanged = rulesChanged || ruleChanged;
       }
 
       await bridge.markSynced(<int>[dirty.id]);

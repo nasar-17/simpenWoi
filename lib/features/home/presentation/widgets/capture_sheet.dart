@@ -65,7 +65,7 @@ class _CaptureSheetState extends ConsumerState<CaptureSheet> {
       _parsed = parsed;
       _type = parsed.type;
       if (parsed.amount > 0) {
-        _amountController.text = formatRupiah(parsed.amount);
+        _amountController.text = formatRupiahDigits(parsed.amount);
       }
       _noteController.text = parsed.note ?? '';
       _categoryId = parsed.categoryId;

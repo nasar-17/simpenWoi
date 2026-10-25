@@ -13,6 +13,8 @@ class Transactions extends Table {
   IntColumn get amount => integer()();
   TextColumn get type => text()();
   IntColumn get walletId => integer().references(Wallets, #id)();
+  IntColumn get counterpartWalletId =>
+      integer().nullable().references(Wallets, #id)();
   IntColumn get categoryId =>
       integer().nullable().references(Categories, #id)();
   TextColumn get note => text().nullable()();
@@ -21,5 +23,7 @@ class Transactions extends Table {
   IntColumn get nativeCaptureId => integer().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isCategorized =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get excludeFromTarget =>
       boolean().withDefault(const Constant(false))();
 }

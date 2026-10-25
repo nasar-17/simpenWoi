@@ -62,7 +62,6 @@ class CaptureActionReceiver : BroadcastReceiver() {
         queue.updateCategory(capture.id, categoryId)
         queue.markDirtyIfImported(capture.id)
         CaptureNotifier(context).showSaved(capture.copy(categoryId = categoryId), categoryName)
-        CaptureNotifier(context).showSummary(queue.countUnanswered())
     }
 
     private fun handleReply(
@@ -82,7 +81,6 @@ class CaptureActionReceiver : BroadcastReceiver() {
             capture.copy(note = reply),
             CaptureNotificationText.noteLabel(reply),
         )
-        CaptureNotifier(context).showSummary(queue.countUnanswered())
     }
 
     private fun handleUndo(
@@ -92,6 +90,5 @@ class CaptureActionReceiver : BroadcastReceiver() {
     ) {
         queue.clearAnswer(capture.id)
         CaptureNotifier(context).showQuestion(capture.copy(categoryId = null, note = null))
-        CaptureNotifier(context).showSummary(queue.countUnanswered())
     }
 }

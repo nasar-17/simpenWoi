@@ -35,7 +35,6 @@ final Provider<CaptureSyncService> captureSyncServiceProvider =
         bridge: ref.watch(nativeCaptureBridgeProvider),
         transactionRepository: transactionRepository,
         walletRepository: ref.watch(walletRepositoryProvider),
-        merchantRuleRepository: merchantRuleRepository,
         contextPusher: contextPusher,
       );
       return CaptureSyncService(

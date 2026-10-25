@@ -8,7 +8,7 @@ import com.drena.simpen_woi.capture.queue.CaptureQueue
 import com.drena.simpen_woi.capture.queue.PendingCapture
 
 object CaptureSimulator {
-    private const val SIMULATOR_PACKAGE = "com.drena.simpen_woi.simulator"
+    const val SIMULATOR_PACKAGE = "com.drena.simpen_woi.simulator"
 
     fun simulate(context: Context, amount: Long, merchant: String) {
         if (amount <= 0L) return
@@ -42,6 +42,5 @@ object CaptureSimulator {
         } else {
             notifier.showQuestion(capture)
         }
-        notifier.showSummary(queue.countUnanswered())
     }
 }

@@ -10,9 +10,10 @@ final Provider<RecapRepository> recapRepositoryProvider =
       (ref) => RecapRepository(ref.watch(databaseProvider)),
     );
 
-final recapTotalsProvider = StreamProvider.family<TransactionTotals, RecapRange>(
-  (ref, range) => ref.watch(recapRepositoryProvider).watchTotals(range),
-);
+final recapTotalsProvider =
+    StreamProvider.family<TransactionTotals, RecapRange>(
+      (ref, range) => ref.watch(recapRepositoryProvider).watchTotals(range),
+    );
 
 final recapCategoryTotalsProvider =
     StreamProvider.family<List<RecapCategoryTotal>, RecapRange>(

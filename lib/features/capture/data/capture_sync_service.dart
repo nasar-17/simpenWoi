@@ -1,4 +1,3 @@
-import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
 import '../../transactions/data/transaction_repository.dart';
 import 'capture_context_pusher.dart';
@@ -43,17 +42,19 @@ class CaptureSyncService {
     TransactionRecord record,
     int categoryId,
   ) async {
-    await transactionRepository.updateTransaction(
+    final bool rulesChanged = await transactionRepository.updateTransaction(
       id: record.id,
       amount: record.amount,
       type: record.type,
       walletId: record.walletId,
+      counterpartWalletId: record.counterpartWalletId,
       categoryId: categoryId,
       note: record.note,
       merchant: record.merchant,
+      excludeFromTarget: record.excludeFromTarget,
     );
-    if (record.type == TransactionType.expense) {
-      await recordMerchantUsage(record.merchant, categoryId);
+    if (rulesChanged) {
+      await refreshNativeContext();
     }
   }
 
