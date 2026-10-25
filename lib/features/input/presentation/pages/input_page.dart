@@ -10,20 +10,21 @@ import '../../../../core/utils/currency.dart';
 import '../../../../core/utils/currency_input_formatter.dart';
 import '../../../categories/domain/category_rules.dart';
 import '../../../categories/domain/category_selection.dart';
+import '../../../home/presentation/widgets/capture_details_form.dart';
+import '../../../home/presentation/widgets/wallet_dropdown.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../../../wallets/domain/wallet_resolver.dart';
 import '../../../wallets/presentation/providers/wallet_providers.dart';
-import 'capture_details_form.dart';
-import 'wallet_dropdown.dart';
+import '../widgets/coming_soon_cards.dart';
 
-class CaptureSheet extends ConsumerStatefulWidget {
-  const CaptureSheet({super.key});
+class InputPage extends ConsumerStatefulWidget {
+  const InputPage({super.key});
 
   @override
-  ConsumerState<CaptureSheet> createState() => _CaptureSheetState();
+  ConsumerState<InputPage> createState() => _InputPageState();
 }
 
-class _CaptureSheetState extends ConsumerState<CaptureSheet> {
+class _InputPageState extends ConsumerState<InputPage> {
   final TextEditingController _inputController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
@@ -81,19 +82,20 @@ class _CaptureSheetState extends ConsumerState<CaptureSheet> {
     });
   }
 
-  void _onCategoryChanged(int? value) {
-    setState(() {
-      _categoryId = value;
-    });
-  }
-
   Future<void> _save() async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     final int amount = parseCurrencyInput(_amountController.text);
+    if (amount <= 0) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Nominal harus lebih dari 0.')),
+      );
+      return;
+    }
     final List<Wallet> wallets = ref.read(walletsProvider).value ?? <Wallet>[];
     if (wallets.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Dompet belum tersedia.')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Dompet belum tersedia.')),
+      );
       return;
     }
     final List<Category> categories =
@@ -102,80 +104,83 @@ class _CaptureSheetState extends ConsumerState<CaptureSheet> {
     final Wallet wallet = resolveWallet(wallets, preferredId: _walletId);
     final String note = _noteController.text.trim();
 
-    await ref
-        .read(transactionRepositoryProvider)
-        .addTransaction(
-          amount: amount,
-          type: _type,
-          walletId: wallet.id,
-          categoryId: categoryId,
-          note: note.isEmpty ? null : note,
-        );
-
-    if (mounted) {
-      Navigator.of(context).pop();
+    try {
+      await ref
+          .read(transactionRepositoryProvider)
+          .addTransaction(
+            amount: amount,
+            type: _type,
+            walletId: wallet.id,
+            categoryId: categoryId,
+            note: note.isEmpty ? null : note,
+          );
+      if (!mounted) {
+        return;
+      }
+      _inputController.clear();
+      _amountController.clear();
+      _noteController.clear();
+      setState(() {
+        _parsed = const ParsedEntry(amount: 0, type: TransactionType.expense);
+        _type = TransactionType.expense;
+        _categoryId = null;
+      });
+      messenger.showSnackBar(const SnackBar(content: Text('Tersimpan')));
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Gagal menyimpan transaksi.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('Catat cepat', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _inputController,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Tulis transaksi',
-                hintText: 'Misalnya: bakso 15rb',
-              ),
-              onChanged: _onInputChanged,
+    return Scaffold(
+      appBar: AppBar(title: const Text('Input')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        children: <Widget>[
+          TextField(
+            controller: _inputController,
+            decoration: const InputDecoration(
+              labelText: 'Tulis transaksi',
+              hintText: 'Misalnya: bakso 15rb',
             ),
-            if (_parsed.amount > 0) ...<Widget>[
-              const SizedBox(height: 16),
-              CaptureDetailsForm(
-                amountController: _amountController,
-                noteController: _noteController,
-                type: _type,
-                categoryId: _categoryId,
-                onTypeChanged: _onTypeChanged,
-                onCategoryChanged: _onCategoryChanged,
-              ),
-            ],
+            onChanged: _onInputChanged,
+          ),
+          if (_parsed.amount > 0) ...<Widget>[
             const SizedBox(height: 16),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: WalletDropdown(
-                    preferredId: _walletId,
-                    isDense: true,
-                    onChanged: (int value) {
-                      setState(() {
-                        _walletId = value;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton(
-                  onPressed: _parsed.amount > 0 ? _save : null,
-                  child: const Text(UiText.save),
-                ),
-              ],
+            CaptureDetailsForm(
+              amountController: _amountController,
+              noteController: _noteController,
+              type: _type,
+              categoryId: _categoryId,
+              onTypeChanged: _onTypeChanged,
+              onCategoryChanged: (int? value) {
+                setState(() {
+                  _categoryId = value;
+                });
+              },
             ),
           ],
-        ),
+          const SizedBox(height: 16),
+          WalletDropdown(
+            preferredId: _walletId,
+            isDense: true,
+            onChanged: (int value) {
+              setState(() {
+                _walletId = value;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: _parsed.amount > 0 ? _save : null,
+            child: const Text(UiText.save),
+          ),
+          const SizedBox(height: 24),
+          const ComingSoonCards(),
+        ],
       ),
     );
   }

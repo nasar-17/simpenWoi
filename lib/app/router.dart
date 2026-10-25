@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/capture/presentation/pages/uncategorized_page.dart';
 import '../features/categories/presentation/pages/categories_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/input/presentation/pages/input_page.dart';
 import '../features/recap/presentation/pages/recap_page.dart';
 import '../features/savings_goals/presentation/pages/savings_goals_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
@@ -46,6 +47,16 @@ GoRouter createAppRouter() {
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
+                path: '/input',
+                name: 'input',
+                builder: (BuildContext context, GoRouterState state) =>
+                    const InputPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
                 path: '/goals',
                 name: 'goals',
                 builder: (BuildContext context, GoRouterState state) =>
@@ -53,13 +64,17 @@ GoRouter createAppRouter() {
               ),
             ],
           ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/settings',
+                name: 'settings',
+                builder: (BuildContext context, GoRouterState state) =>
+                    const SettingsPage(),
+              ),
+            ],
+          ),
         ],
-      ),
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        builder: (BuildContext context, GoRouterState state) =>
-            const SettingsPage(),
       ),
       GoRoute(
         path: '/uncategorized',
