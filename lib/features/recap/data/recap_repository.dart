@@ -34,6 +34,7 @@ class RecapRepository {
             Variable.withDateTime(range.start),
             Variable.withDateTime(range.end),
           ],
+          readsFrom: <ResultSetImplementation>{_database.transactions},
         )
         .watchSingle()
         .map(
@@ -59,6 +60,10 @@ class RecapRepository {
             Variable.withDateTime(range.start),
             Variable.withDateTime(range.end),
           ],
+          readsFrom: <ResultSetImplementation>{
+            _database.transactions,
+            _database.categories,
+          },
         )
         .watch()
         .map(
