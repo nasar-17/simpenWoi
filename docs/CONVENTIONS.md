@@ -1,6 +1,7 @@
 # Konvensi Kode
 ## Prinsip
-- Refactor bersifat memindahkan/memecah kode; perilaku, ID, dan skema database tidak berubah.
+- Refactor bersifat memindahkan/memecah kode; jangan mengubah perilaku yang tidak diminta.
+- Perubahan perilaku dan skema database harus disengaja, didokumentasikan, dan memakai migrasi aditif.
 - Tidak menambah dependency tanpa kebutuhan yang jelas.
 - Perbaikan bug di luar refactor dicatat, bukan dicampur diam-diam.
 ## Struktur Dart
@@ -37,6 +38,7 @@ lib/
 ## Database
 - Nama database, tabel, kolom, dan nilai domain adalah kontrak; jangan diubah saat refactor.
 - Migrasi bersifat aditif. Perubahan skema harus menaikkan `schemaVersion`.
+- Transfer disimpan sebagai satu baris `type = transfer` dengan `counterpart_wallet_id`; jangan membuat dua baris transaksi.
 - Index transaksi: `created_at`, `wallet_id`, `category_id`, `is_categorized`.
 - Setelah mengubah tabel: `dart run build_runner build --delete-conflicting-outputs`.
 ## Kotlin/Android
@@ -56,4 +58,5 @@ com.drena.simpen_woi/
 - Konstanta channel, action, extra, ID notifikasi, dan teks notifikasi disimpan di file kontrak/teks.
 - Operasi database/notifikasi tidak di main thread; gunakan `CaptureExecutor`.
 - Antrean capture memakai singleton `CaptureQueue.getInstance(context)`.
+- Pemasangan dan pembatalan transfer ada di `CaptureTransferStore`; jangan menaruh aturan pasangan di service atau receiver.
 - Pertahankan nama paket simulator dan nama tabel/kolom antrean.
