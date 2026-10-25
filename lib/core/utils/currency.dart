@@ -7,3 +7,7 @@ final NumberFormat _rupiahFormat = NumberFormat.currency(
 );
 
 String formatRupiah(int amount) => _rupiahFormat.format(amount);
+
+String formatRupiahDigits(int amount) {
+  return _rupiahFormat.format(amount).replaceFirst('Rp', '').trim();
+}

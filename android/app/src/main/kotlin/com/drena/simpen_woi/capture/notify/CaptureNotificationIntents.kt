@@ -1,0 +1,103 @@
+package com.drena.simpen_woi.capture.notify
+
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import com.drena.simpen_woi.MainActivity
+import com.drena.simpen_woi.capture.queue.CaptureCategory
+
+internal object CaptureNotificationIntents {
+    private const val NOTIFICATION_BASE = 100000
+    private const val REQUEST_CATEGORY = 200000
+    private const val REQUEST_REPLY = 300000
+    private const val REQUEST_UNDO = 400000
+    private const val REQUEST_OPEN = 500000
+    private const val REQUEST_UNPAIR = 600000
+
+    fun category(
+        context: Context,
+        captureId: Long,
+        category: CaptureCategory,
+    ): PendingIntent {
+        val intent = Intent(context, CaptureActionReceiver::class.java).apply {
+            action = CaptureNotificationContract.ACTION_CATEGORY
+            data = Uri.parse("capture://$captureId/category/${category.id}")
+            putExtra(CaptureNotificationContract.EXTRA_CAPTURE_ID, captureId)
+            putExtra(CaptureNotificationContract.EXTRA_CATEGORY_ID, category.id)
+            putExtra(CaptureNotificationContract.EXTRA_CATEGORY_NAME, category.name)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode(REQUEST_CATEGORY, captureId),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    fun reply(context: Context, captureId: Long): PendingIntent {
+        val intent = Intent(context, CaptureActionReceiver::class.java).apply {
+            action = CaptureNotificationContract.ACTION_REPLY
+            data = Uri.parse("capture://$captureId/reply")
+            putExtra(CaptureNotificationContract.EXTRA_CAPTURE_ID, captureId)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode(REQUEST_REPLY, captureId),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+        )
+    }
+
+    fun undo(context: Context, captureId: Long): PendingIntent {
+        val intent = Intent(context, CaptureActionReceiver::class.java).apply {
+            action = CaptureNotificationContract.ACTION_UNDO
+            data = Uri.parse("capture://$captureId/undo")
+            putExtra(CaptureNotificationContract.EXTRA_CAPTURE_ID, captureId)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode(REQUEST_UNDO, captureId),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    fun unpair(context: Context, captureId: Long): PendingIntent {
+        val intent = Intent(context, CaptureActionReceiver::class.java).apply {
+            action = CaptureNotificationContract.ACTION_UNPAIR
+            data = Uri.parse("capture://$captureId/unpair")
+            putExtra(CaptureNotificationContract.EXTRA_CAPTURE_ID, captureId)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            requestCode(REQUEST_UNPAIR, captureId),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    fun openApp(context: Context, captureId: Long): PendingIntent {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            data = Uri.parse("capture://$captureId/open")
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(CaptureNotificationContract.EXTRA_CAPTURE_ID, captureId)
+        }
+        return PendingIntent.getActivity(
+            context,
+            requestCode(REQUEST_OPEN, captureId),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    fun notificationId(captureId: Long): Int {
+        return NOTIFICATION_BASE + (captureId % 100000L).toInt()
+    }
+
+    private fun requestCode(base: Int, captureId: Long): Int {
+        return base + (captureId % 100000L).toInt()
+    }
+}
