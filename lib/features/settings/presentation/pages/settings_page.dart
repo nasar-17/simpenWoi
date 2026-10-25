@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -5,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/ui_text.dart';
 import '../../../capture/presentation/providers/capture_providers.dart';
+import '../widgets/inspector_settings_section.dart';
 import '../widgets/notification_settings_section.dart';
 import '../widgets/settings_info_sections.dart';
 
@@ -144,6 +146,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
             onSimulateCapture: _simulateCapture,
           ),
           const SizedBox(height: 16),
+          if (kDebugMode) ...<Widget>[
+            const SizedBox(height: 16),
+            const InspectorSettingsSection(),
+          ],
           const SettingsInfoSections(),
           const SizedBox(height: 32),
           Center(

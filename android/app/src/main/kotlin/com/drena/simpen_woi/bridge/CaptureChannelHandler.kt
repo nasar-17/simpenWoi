@@ -3,11 +3,15 @@ package com.drena.simpen_woi.bridge
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import com.drena.simpen_woi.capture.CaptureSimulator
 import com.drena.simpen_woi.capture.NotificationCaptureService
+import com.drena.simpen_woi.capture.inspector.CaptureInspector
+import com.drena.simpen_woi.capture.inspector.toInspectorMap
+import com.drena.simpen_woi.capture.inspector.toListenerStatusMap
 import com.drena.simpen_woi.capture.notify.CaptureNotifier
 import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import com.drena.simpen_woi.capture.queue.CaptureExecutor
@@ -105,6 +109,41 @@ class CaptureChannelHandler(private val activity: Activity) {
                     }
                 }
 
+                "getInspectorLog" -> {
+                    runAsync(result) {
+                        CaptureInspector.getLog(activity).map { it.toInspectorMap() }
+                    }
+                }
+
+                "clearInspectorLog" -> {
+                    runAsync(result) {
+                        CaptureInspector.clear(activity)
+                        null
+                    }
+                }
+
+                "setInspectorEnabled" -> {
+                    val enabled = call.argument<Boolean>("enabled") ?: false
+                    if (enabled && !isDebuggable()) {
+                        result.error(
+                            "inspector_debug_only",
+                            "Inspektor hanya tersedia pada build debug.",
+                            null,
+                        )
+                        return
+                    }
+                    runAsync(result) {
+                        CaptureInspector.setEnabled(activity, enabled)
+                        null
+                    }
+                }
+
+                "getListenerStatus" -> {
+                    runAsync(result) {
+                        CaptureInspector.getListenerStatus(activity).toListenerStatusMap()
+                    }
+                }
+
                 else -> result.notImplemented()
             }
         } catch (error: Exception) {
@@ -121,6 +160,10 @@ class CaptureChannelHandler(private val activity: Activity) {
                 mainHandler.post { result.error("capture_error", error.message, null) }
             }
         }
+    }
+
+    private fun isDebuggable(): Boolean {
+        return (activity.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     }
 
     private fun isNotificationListenerEnabled(): Boolean {

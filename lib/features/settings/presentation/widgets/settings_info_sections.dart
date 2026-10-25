@@ -12,7 +12,7 @@ class SettingsInfoSections extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const SettingsSection(
+        SettingsSection(
           title: 'Agar tetap berjalan',
           children: <Widget>[
             SettingsInfoTile(
@@ -32,8 +32,8 @@ class SettingsInfoSections extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        const SettingsSection(
+        SizedBox(height: 16),
+        SettingsSection(
           title: 'Aplikasi',
           children: <Widget>[
             SettingsInfoTile(
@@ -45,8 +45,8 @@ class SettingsInfoSections extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        const SettingsSection(
+        SizedBox(height: 16),
+        SettingsSection(
           title: 'Privasi',
           children: <Widget>[
             SettingsInfoTile(

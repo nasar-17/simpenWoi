@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.drena.simpen_woi"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

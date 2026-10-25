@@ -9,7 +9,7 @@ import org.json.JSONException
 import org.json.JSONObject
 
 object CapturePreferences {
-    private const val PREFS_NAME = "simpenwoi_capture_prefs"
+    const val PREFS_NAME = "simpenwoi_capture_prefs"
     private const val KEY_CATEGORIES = "expense_categories"
     private const val KEY_TOP_CATEGORIES = "top_categories"
     private const val KEY_MERCHANT_RULES = "merchant_rules"
@@ -69,6 +69,18 @@ object CapturePreferences {
             }
         } catch (_: JSONException) {
             null
+        }
+    }
+
+    fun isNotificationKeyDuplicate(context: Context, key: String): Boolean {
+        val now = System.currentTimeMillis()
+        val stored = prefs(context).getStringSet(KEY_RECENT_KEYS, emptySet()) ?: emptySet()
+        return stored.any { entry ->
+            val separator = entry.lastIndexOf('|')
+            if (separator <= 0) return@any false
+            val timestamp = entry.substring(separator + 1).toLongOrNull() ?: return@any false
+            timestamp >= now - RECENT_KEY_TTL_MS &&
+                entry.substring(0, separator) == key
         }
     }
 

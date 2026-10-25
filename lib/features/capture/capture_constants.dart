@@ -11,8 +11,13 @@ abstract final class CaptureChannel {
   static const String isListenerEnabled = 'isListenerEnabled';
   static const String openListenerSettings = 'openListenerSettings';
   static const String simulateCapture = 'simulateCapture';
+  static const String getInspectorLog = 'getInspectorLog';
+  static const String clearInspectorLog = 'clearInspectorLog';
+  static const String setInspectorEnabled = 'setInspectorEnabled';
+  static const String getListenerStatus = 'getListenerStatus';
 
   static const String ids = 'ids';
+  static const String enabled = 'enabled';
   static const String categories = 'categories';
   static const String topCategories = 'top_categories';
   static const String rules = 'rules';
@@ -31,6 +36,19 @@ abstract final class CaptureKeys {
   static const String categoryId = 'category_id';
   static const String categoryName = 'category_name';
   static const String note = 'note';
+}
+
+/// Kunci payload inspektor notifikasi dari sisi native.
+abstract final class InspectorKeys {
+  static const String time = 'time';
+  static const String package = 'package';
+  static const String title = 'title';
+  static const String text = 'text';
+  static const String bigText = 'big_text';
+  static const String result = 'result';
+  static const String connected = 'connected';
+  static const String updatedAt = 'updated_at';
+  static const String inspectorEnabled = 'inspector_enabled';
 }
 
 abstract final class CaptureConstants {

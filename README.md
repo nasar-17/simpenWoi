@@ -76,6 +76,12 @@ antar versi aplikasi; verifikasi di perangkat sebelum mengandalkan fitur ini.
 Pada build debug, **Pengaturan > Notifikasi Otomatis** menyediakan tombol
 **Kirim notifikasi simulasi** untuk menguji alur tanpa transaksi sungguhan.
 
+Build debug juga memiliki **Pengaturan > Inspektor Notifikasi**. Saat diaktifkan,
+inspektor menyimpan maksimal 50 notifikasi terakhir secara lokal beserta hasil
+deteksi parser (ditangkap atau alasan dilewati), sehingga notifikasi yang tidak
+tertangkap dapat didiagnosis. Isi notifikasi hanya disimpan selama inspektor
+aktif dan dapat dihapus dari layar tersebut.
+
 ## Menjalankan
 
 ```sh
