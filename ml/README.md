@@ -1,70 +1,63 @@
 # ML Dataset Generation
 
-This directory contains scripts and tools for generating ML training datasets from the app's learning logs.
+This directory contains optional tooling for exporting the app's `learning_log`
+data for analysis or model training. It is not part of the Flutter app and never
+runs automatically.
 
-## Files
+## Export from the app (recommended)
 
-- `generate_dataset.py` - Python script to export learning_log table to JSONL format
-- `README.md` - This file
+Open **Pengaturan > Pembelajaran > Ekspor log pembelajaran** and choose a
+`.jsonl` destination. The app writes one JSON object per line:
 
-## Usage
-
-### Generate Dataset
-
-To generate a JSONL dataset from the learning_log table:
-
-```bash
-python generate_dataset.py
+```json
+{
+  "id": 1,
+  "input_text": "makan siang 50rb",
+  "action_json": "{\"type\":\"add_transaction\",\"amount\":50000}",
+  "outcome": "accepted",
+  "created_at": "2023-01-01T12:00:00.000"
+}
 ```
 
-Or specify custom paths:
+`action_json` is a JSON string, not an object.
+
+## Export with the Python script
+
+Use this only when you have a copy of the SQLite database:
 
 ```bash
-python generate_dataset.py <database_path> <output_path>
+python ml/generate_dataset.py <database_path> <output_path>
 ```
 
-#### Default Paths
-
-- Database: `../build/app_flutter/app_flutter.db` (Flutter build database)
-- Output: `learning_dataset.jsonl`
-
-#### Example
+Example:
 
 ```bash
-python generate_dataset.py ../build/app_flutter/app_flutter.jsonl
+python ml/generate_dataset.py learning.db learning_dataset.jsonl
 ```
 
-## Output Format
-
-The output is in JSONL (JSON Lines) format, with one JSON object per line. Each entry contains:
+The script parses `action_json` into an `action` object:
 
 ```json
 {
   "id": 1,
   "input_text": "makan siang 50rb",
   "action": {
-    "amount": 50000,
-    "type": "expense",
-    "walletId": 1,
-    "categoryId": 1,
-    "note": "makan siang",
-    "merchant": null,
-    "excludeFromTarget": false,
-    "createdAt": "2023-01-01T12:00:00"
+    "type": "add_transaction",
+    "amount": 50000
   },
   "outcome": "accepted",
   "created_at": "2023-01-01T12:00:00"
 }
 ```
 
+The default path in the script (`../build/app_flutter/app_flutter.db`) is only a
+development fallback. It is usually not valid for an Android install, so pass
+the database path explicitly.
+
 ## Notes
 
-- The script requires Python 3.x and the `sqlite3` module (built-in)
-- Database path should point to the Flutter app's database (usually in `build/app_flutter/`)
-- The script handles JSON parsing of the action field and falls back to empty dict on errors
-- All entries are ordered by ID (chronological order)
-- Output encoding is UTF-8 to support Indonesian text
-
-## Integration
-
-This script is intended for offline use and is not part of the Flutter app. It should be run separately when you want to export learning data for ML model training or analysis.
+- Requires Python 3.x and the built-in `sqlite3` module.
+- Output is UTF-8 and ordered by `learning_log.id`.
+- The script is offline-only and makes no network requests.
+- The app export is preferred because it does not require locating the private
+  app database.

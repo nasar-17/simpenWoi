@@ -9,6 +9,7 @@
 lib/
   app/                  # shell, router, theme, root app
   core/
+    assistant/          # action, konteks, validasi, eksekusi asisten
     constants/          # nilai domain dan teks lintas fitur
     database/           # AppDatabase, migrasi, seed, tables/
     parser/             # parser teks; satu tanggung jawab per file
@@ -35,6 +36,24 @@ lib/
 - Import `package:` lebih dulu, lalu relatif; urutkan sesuai `directives_ordering`.
 - Gunakan `unawaited(...)` hanya untuk future yang sengaja tidak ditunggu.
 - Setelah mengubah kode: `dart format .` lalu `flutter analyze`.
+## Asisten dan pembelajaran
+- `AiProvider` dipanggil `InputEngine` hanya saat aturan lokal tidak yakin.
+  `isAvailable` sinkron, `propose` async, dan `null` berarti fallback ke aturan.
+- Validasi setiap `AssistantAction` dengan `validateAssistantAction` sebelum
+  dieksekusi; jangan mengeksekusi function call mentah dari model.
+- Prompt, tools, dan akses `FlutterGemma` hanya di `features/assistant/data`.
+  Widget tidak boleh memanggil model secara langsung.
+- File model `.litertlm` tidak disimpan di repo; impor lewat Pengaturan > Model AI.
+  Model default nonaktif dan tidak boleh menambah izin INTERNET.
+- Inisialisasi, impor, hapus, dan unload model hanya lewat
+  `FunctionGemmaModelManager`; UI hanya menampilkan status dan aksi pengguna.
+- Jangan mencatat isi input atau notifikasi ke log. Inferensi dan data pengguna
+  tetap di perangkat.
+- Feedback kategori dicatat lewat `LearningRepository.applyFeedback`; UI tidak
+  menulis `learning_log` secara langsung.
+- Perubahan prompt/tool harus selaras dengan `assets/ai/skill_keuangan.md` dan
+  diuji lewat golden set. Jangan mengubah skema database untuk fitur model.
+
 ## Database
 - Nama database, tabel, kolom, dan nilai domain adalah kontrak; jangan diubah saat refactor.
 - Migrasi bersifat aditif. Perubahan skema harus menaikkan `schemaVersion`.

@@ -5,6 +5,8 @@ Aplikasi pengatur keuangan Android yang cepat, mudah, dan sepenuhnya offline.
 ## Fitur
 
 - Catat transaksi cepat dari teks bebas (mis. `bakso 15rb`) dengan parser lokal.
+- Asisten Input untuk mencatat, menanyakan total, transfer, dan mengelola
+  dompet/kategori dari teks bebas.
 - Dompet dengan saldo otomatis, kategori pengeluaran/pemasukan.
 - Transfer antar dompet tanpa mengubah total pemasukan/pengeluaran.
 - Rekap harian, mingguan, dan bulanan dengan grafik.
@@ -13,6 +15,9 @@ Aplikasi pengatur keuangan Android yang cepat, mudah, dan sepenuhnya offline.
 - Kategorisasi langsung dari notifikasi (tombol kategori + balasan teks).
 - Deteksi transfer dari pasangan notifikasi keluar/masuk dan opsi **Bukan transfer**.
 - Layar "Perlu dilengkapi" untuk transaksi yang belum berkategori.
+- Saran kategori yang belajar dari koreksi lokal, debug golden set, dan ekspor JSONL.
+- Asisten on-device opsional dengan FunctionGemma 270M; model diimpor manual
+  dan nonaktif secara default.
 - Navigasi lima tab: Beranda, Rekap, Input, Target, Pengaturan.
 
 ## Prinsip offline-first
@@ -20,7 +25,9 @@ Aplikasi pengatur keuangan Android yang cepat, mudah, dan sepenuhnya offline.
 - Tidak ada backend, API eksternal, analytics, maupun Firebase.
 - Tidak ada izin INTERNET.
 - Seluruh data transaksi disimpan lokal di perangkat menggunakan SQLite melalui Drift.
-- Isi notifikasi diproses di perangkat dan tidak pernah dikirim keluar.
+- Isi notifikasi dan input asisten diproses di perangkat dan tidak pernah dikirim keluar.
+- Model AI opsional juga berjalan sepenuhnya di perangkat; file model tidak
+  disertakan dalam aplikasi dan tidak diunduh otomatis.
 
 ## Struktur folder
 
@@ -29,20 +36,26 @@ lib/
   main.dart
   app/                    # shell, router, dan tema
   core/
+    assistant/            # action, konteks, validasi, eksekusi asisten
     constants/            # nilai domain dan teks lintas fitur
     database/             # skema Drift, migrasi, seed, tables/
     parser/               # parser teks dan nominal
     utils/                # format rupiah, tanggal, input nominal
     widgets/              # widget kecil lintas fitur
   features/
+    assistant/            # Input asisten, scorer, prompt, model on-device
     capture/              # jembatan notifikasi native + impor + kategori
+    categories/           # kategori dan aturan kategori
     home/                 # beranda, input cepat, edit transaksi
+    learning/             # feedback, statistik, golden set
     recap/                # rekap harian, mingguan, bulanan
     savings_goals/        # target tabungan dan setoran
     targets/              # target pengeluaran bulanan
-    settings/             # pengaturan aplikasi dan notifikasi
+    settings/             # pengaturan aplikasi, notifikasi, dan model AI
     transactions/         # repository, model, dan provider transaksi
     wallets/              # dompet dan saldo
+assets/
+  ai/                     # lexicon dan prompt asisten
 docs/
   CONVENTIONS.md          # struktur dan aturan kontribusi
 android/
@@ -101,6 +114,23 @@ kategori langsung dikirim ulang ke layanan capture native. Menghapus kategori
 atau dompet yang masih dipakai akan memindahkan transaksi terkait, termasuk
 transaksi transfer yang memakai dompet tersebut sebagai asal atau tujuan.
 
+## Asisten dan model AI
+
+Asisten Input memakai aturan dan scorer lokal terlebih dahulu. Jika hasilnya
+belum yakin, aplikasi dapat memakai FunctionGemma 270M yang berjalan di perangkat.
+Tanpa model, seluruh fitur asisten tetap berfungsi dengan aturan lokal.
+
+Untuk mengaktifkan model:
+
+1. Unduh file model `.litertlm` yang kompatibel secara terpisah.
+2. Buka **Pengaturan > Model AI**.
+3. Ketuk **Impor model**, pilih file, lalu aktifkan **Asisten on-device**.
+4. Gunakan **Debug golden set** untuk membandingkan prediksi aturan dan model.
+
+Model nonaktif secara default, tidak disertakan dalam repo, dan tidak diunduh
+otomatis. Model dibongkar dari memori setelah 3 menit tidak dipakai. Jangan
+menambahkan izin INTERNET untuk fitur ini.
+
 ## Menjalankan
 
 ```sh
@@ -111,6 +141,8 @@ flutter run
 
 ## Status
 
-Tahap 1-6 selesai: setup, MVP transaksi/rekap/target tabungan, tangkapan
-notifikasi, navigasi lima tab, transfer antar dompet, dan target pengeluaran.
-Budget, OCR struk, dan input suara belum diimplementasikan.
+Tahap 1-8 selesai: setup, MVP transaksi/rekap/target tabungan, tangkapan
+notifikasi, navigasi lima tab, transfer antar dompet, target pengeluaran,
+asisten dan pembelajaran kategori, serta ekspor dataset. Model on-device
+opsional sudah terpasang di kode, tetapi verifikasi runtime di perangkat belum
+dilakukan. Budget, OCR struk, dan input suara belum diimplementasikan.
