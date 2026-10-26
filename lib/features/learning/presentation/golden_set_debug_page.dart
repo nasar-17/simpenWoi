@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../assistant/domain/category_scorer.dart';
-import '../../../assistant/domain/naive_bayes_category_scorer.dart';
-import '../../../assistant/domain/input_engine.dart';
-import '../../../assistant/presentation/providers/assistant_providers.dart';
-import '../../../assistant/presentation/providers/assistant_chat_controller.dart';
-import '../../../core/assistant/presentation/providers/assistant_data_repository_provider.dart';
+import '../../assistant/domain/category_scorer.dart';
+import '../../assistant/domain/naive_bayes_category_scorer.dart';
+import '../../assistant/presentation/providers/assistant_providers.dart';
 import '../../../core/assistant/assistant_context.dart';
 import '../../../core/database/app_database.dart';
-import '../../../assistant/domain/category_scorer.dart';
-import '../../../learning/presentation/providers/learning_providers.dart';
-import '../../../learning/domain/learning_stats.dart';
 
 class GoldenSetDebugPage extends ConsumerStatefulWidget {
   const GoldenSetDebugPage({super.key});
@@ -45,8 +39,8 @@ class _GoldenSetDebugPageState extends ConsumerState<GoldenSetDebugPage> {
       _results.clear();
     });
     try {
-      final NaiveBayesCategoryScorer scorer = ref.read(categoryScorerProvider)
-          as NaiveBayesCategoryScorer;
+      final NaiveBayesCategoryScorer scorer =
+          ref.read(categoryScorerProvider) as NaiveBayesCategoryScorer;
       final List<Category> categories = await ref
           .read(assistantDataRepositoryProvider)
           .loadContext()
@@ -58,10 +52,7 @@ class _GoldenSetDebugPageState extends ConsumerState<GoldenSetDebugPage> {
           categories: categories,
         );
         final topScores = scores.take(3).toList();
-        _results.add(<String, dynamic>{
-          'input': input,
-          'scores': topScores,
-        });
+        _results.add(<String, dynamic>{'input': input, 'scores': topScores});
       }
     } catch (error) {
       // TODO: Show error
@@ -92,9 +83,7 @@ class _GoldenSetDebugPageState extends ConsumerState<GoldenSetDebugPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Debug Golden Set'),
-      ),
+      appBar: AppBar(title: const Text('Debug Golden Set')),
       body: Column(
         children: <Widget>[
           Padding(
@@ -123,9 +112,7 @@ class _GoldenSetDebugPageState extends ConsumerState<GoldenSetDebugPage> {
                             children: <Widget>[
                               Text(
                                 input,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                               const SizedBox(height: 8),
@@ -134,7 +121,9 @@ class _GoldenSetDebugPageState extends ConsumerState<GoldenSetDebugPage> {
                                   score.categoryId,
                                 );
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 2,
+                                  ),
                                   child: Row(
                                     children: <Widget>[
                                       Text(
@@ -143,9 +132,9 @@ class _GoldenSetDebugPageState extends ConsumerState<GoldenSetDebugPage> {
                                             .textTheme
                                             .bodySmall
                                             ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                               fontWeight: FontWeight.w500,
                                             ),
                                       ),
@@ -153,27 +142,25 @@ class _GoldenSetDebugPageState extends ConsumerState<GoldenSetDebugPage> {
                                       Expanded(
                                         child: Text(
                                           category?.name ?? 'Unknown',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
                                         ),
                                       ),
                                     ],
                                   ),
                                 );
-                              }).toList(),
+                              }),
                               if (scores.isEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
                                   child: Text(
                                     'Tidak ada kategori yang cocok',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
+                                    style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                         ),
                                   ),
                                 ),

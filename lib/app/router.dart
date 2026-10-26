@@ -5,6 +5,7 @@ import '../features/assistant/presentation/pages/assistant_input_page.dart';
 import '../features/capture/presentation/pages/uncategorized_page.dart';
 import '../features/categories/presentation/pages/categories_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/learning/presentation/golden_set_debug_page.dart';
 import '../features/recap/presentation/pages/recap_page.dart';
 import '../features/savings_goals/presentation/pages/savings_goals_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
