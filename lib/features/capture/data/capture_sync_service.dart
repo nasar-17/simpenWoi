@@ -2,6 +2,7 @@ import '../../../core/database/app_database.dart';
 import '../../transactions/data/transaction_repository.dart';
 import 'capture_context_pusher.dart';
 import 'capture_importer.dart';
+import 'capture_learning_recorder.dart';
 import 'merchant_rule_repository.dart';
 
 /// Orkestrator sinkronisasi capture dari notifikasi.
@@ -11,12 +12,14 @@ class CaptureSyncService {
     required this.merchantRuleRepository,
     required this.contextPusher,
     required this.importer,
+    required this.learningRecorder,
   });
 
   final TransactionRepository transactionRepository;
   final MerchantRuleRepository merchantRuleRepository;
   final CaptureContextPusher contextPusher;
   final CaptureImporter importer;
+  final CaptureLearningRecorder learningRecorder;
 
   bool _syncing = false;
   bool _syncPending = false;
@@ -57,6 +60,12 @@ class CaptureSyncService {
       note: record.note,
       merchant: record.merchant,
       excludeFromTarget: record.excludeFromTarget,
+    );
+    await learningRecorder.record(
+      inputText: record.note ?? record.merchant ?? '',
+      merchant: record.merchant,
+      oldCategoryId: record.categoryId,
+      newCategoryId: categoryId,
     );
     final int? nativeCaptureId = record.nativeCaptureId;
     if (nativeCaptureId != null) {

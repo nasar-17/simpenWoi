@@ -1,55 +1,47 @@
 import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
-import '../../../core/parser/category_rule.dart';
-import '../../../core/parser/parsed_entry.dart';
-import '../../../core/parser/transaction_parser.dart';
-import '../../categories/domain/category_rules.dart';
 import '../data/native_capture_models.dart';
+import 'capture_category_classifier.dart';
 import 'capture_direction.dart';
 
-const TransactionParser _parser = TransactionParser();
-
-int? resolveCaptureCategory(NativeCapture capture, List<Category> categories) {
+Future<int?> resolveCaptureCategory(
+  NativeCapture capture,
+  List<Category> categories,
+  CaptureCategoryClassifier classifier,
+) async {
   final String type = _typeForDirection(capture.direction);
-  final int? queuedCategoryId = capture.categoryId;
-  if (_isCategoryOfType(queuedCategoryId, type, categories)) {
-    return queuedCategoryId;
-  }
-
-  final String? note = capture.note?.trim();
-  if (note == null || note.isEmpty) {
-    return null;
-  }
-  final List<CategoryRule> rules = categoryRulesFrom(categories);
-  final ParsedEntry parsed = _parser.parse(note, categories: rules);
-  return parsed.type == type &&
-          _isCategoryOfType(parsed.categoryId, type, categories)
-      ? parsed.categoryId
-      : null;
+  final CaptureCategoryResult result = await classifier.classify(
+    text: capture.note ?? '',
+    type: type,
+    categories: categories,
+    queuedCategoryId: capture.categoryId,
+    merchant: capture.merchant,
+  );
+  return result.categoryId;
 }
 
-int? resolveDirtyCaptureCategory(
+Future<int?> resolveDirtyCaptureCategory(
   DirtyNativeCapture dirty,
   TransactionRecord record,
   List<Category> categories,
-) {
-  final String type = record.type;
-  final int? queuedCategoryId = dirty.categoryId;
-  if (_isCategoryOfType(queuedCategoryId, type, categories)) {
-    return queuedCategoryId;
+  CaptureCategoryClassifier classifier,
+) async {
+  if (_isCategoryOfType(dirty.categoryId, record.type, categories)) {
+    return dirty.categoryId;
   }
-
   final String? note = dirty.note?.trim();
   if (note != null && note.isNotEmpty) {
-    final List<CategoryRule> rules = categoryRulesFrom(categories);
-    final ParsedEntry parsed = _parser.parse(note, categories: rules);
-    if (parsed.type == type &&
-        _isCategoryOfType(parsed.categoryId, type, categories)) {
-      return parsed.categoryId;
+    final CaptureCategoryResult result = await classifier.classify(
+      text: note,
+      type: record.type,
+      categories: categories,
+      merchant: record.merchant,
+    );
+    if (result.categoryId != null) {
+      return result.categoryId;
     }
   }
-
-  return _isCategoryOfType(record.categoryId, type, categories)
+  return _isCategoryOfType(record.categoryId, record.type, categories)
       ? record.categoryId
       : null;
 }

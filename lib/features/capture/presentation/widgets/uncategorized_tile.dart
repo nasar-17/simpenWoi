@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +11,7 @@ import '../../../transactions/data/transaction_detail.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../providers/capture_providers.dart';
 import 'category_picker_sheet.dart';
+import 'uncategorized_suggestions.dart';
 
 class UncategorizedTile extends ConsumerWidget {
   const UncategorizedTile({super.key, required this.detail});
@@ -36,8 +39,18 @@ class UncategorizedTile extends ConsumerWidget {
           child: Icon(Icons.receipt_long, color: scheme.onSecondaryContainer),
         ),
         title: Text(title),
-        subtitle: Text(
-          '${formatRupiah(record.amount)} \u2022 ${detail.wallet.name}\n$date',
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              '${formatRupiah(record.amount)} \u2022 ${detail.wallet.name}\n$date',
+            ),
+            UncategorizedSuggestions(
+              record: record,
+              onSelected: (int id) =>
+                  unawaited(_applyCategory(context, ref, id)),
+            ),
+          ],
         ),
         isThreeLine: true,
         trailing: const Icon(Icons.chevron_right),
@@ -67,12 +80,28 @@ class UncategorizedTile extends ConsumerWidget {
       builder: (BuildContext context) =>
           CategoryPickerSheet(categories: filteredCategories),
     );
-    if (selected == null) {
+    if (selected == null || !context.mounted) {
       return;
     }
+    await _applyCategory(context, ref, selected);
+  }
 
-    final List<Category> latest =
-        ref.read(categoriesProvider).value ?? categories;
+  Future<void> _applyCategory(
+    BuildContext context,
+    WidgetRef ref,
+    int selected,
+  ) async {
+    List<Category> latest;
+    try {
+      latest =
+          ref.read(categoriesProvider).value ??
+          await ref.read(categoriesProvider.future);
+    } catch (_) {
+      return;
+    }
+    if (!context.mounted) {
+      return;
+    }
     final bool stillValid =
         validCategoryId(selected, detail.transaction.type, latest) != null;
     if (!stillValid) {

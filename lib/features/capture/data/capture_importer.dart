@@ -3,9 +3,12 @@ import '../../../core/database/app_database.dart';
 import '../../transactions/data/transaction_repository.dart';
 import '../../wallets/data/wallet_repository.dart';
 import '../../wallets/domain/wallet_resolver.dart';
+import '../domain/capture_category_classifier.dart';
 import '../domain/capture_category_resolver.dart';
 import '../domain/capture_direction.dart';
 import 'capture_context_pusher.dart';
+import 'capture_learning_recorder.dart';
+import 'capture_transfer_importer.dart';
 import 'native_capture_bridge.dart';
 import 'native_capture_models.dart';
 
@@ -16,12 +19,18 @@ class CaptureImporter {
     required this.transactionRepository,
     required this.walletRepository,
     required this.contextPusher,
+    required this.classifier,
+    required this.learningRecorder,
+    required this.transferImporter,
   });
 
   final NativeCaptureBridge bridge;
   final TransactionRepository transactionRepository;
   final WalletRepository walletRepository;
   final CaptureContextPusher contextPusher;
+  final CaptureCategoryClassifier classifier;
+  final CaptureLearningRecorder learningRecorder;
+  final CaptureTransferImporter transferImporter;
 
   Future<void> importPending() async {
     final List<NativeCapture> captures = await bridge.getPendingCaptures();
@@ -44,7 +53,7 @@ class CaptureImporter {
       }
 
       if (capture.isTransfer) {
-        await _importTransfer(capture, wallets);
+        await transferImporter.importTransfer(capture, wallets);
         await bridge.markImported(<int>[capture.id]);
         continue;
       }
@@ -53,7 +62,11 @@ class CaptureImporter {
       final String type = incoming
           ? TransactionType.income
           : TransactionType.expense;
-      final int? categoryId = resolveCaptureCategory(capture, categories);
+      final int? categoryId = await resolveCaptureCategory(
+        capture,
+        categories,
+        classifier,
+      );
       await transactionRepository.addTransaction(
         amount: capture.amount,
         type: type,
@@ -65,6 +78,13 @@ class CaptureImporter {
         createdAt: capture.postedAt,
         nativeCaptureId: capture.id,
       );
+      if (categoryId != null) {
+        await learningRecorder.record(
+          inputText: capture.note ?? capture.merchant ?? '',
+          merchant: capture.merchant,
+          newCategoryId: categoryId,
+        );
+      }
 
       if (!incoming && categoryId != null && capture.categoryId != null) {
         final String? merchant = capture.merchant?.trim();
@@ -79,58 +99,6 @@ class CaptureImporter {
     if (rulesChanged) {
       await contextPusher.pushLocalContext();
     }
-  }
-
-  Future<void> _importTransfer(
-    NativeCapture capture,
-    List<Wallet> wallets,
-  ) async {
-    final TransactionRecord? existing = await transactionRepository
-        .getByNativeCaptureId(capture.id);
-    if (existing != null) {
-      return;
-    }
-    final int? pairId = capture.pairId;
-    if (pairId != null) {
-      final TransactionRecord? previous = await transactionRepository
-          .getByNativeCaptureId(pairId);
-      if (previous != null) {
-        await transactionRepository.deleteTransaction(previous.id);
-      }
-    }
-    final String sourcePackage =
-        capture.transferSourcePackage ?? capture.sourcePackage;
-    final String destinationPackage = capture.transferDestinationPackage ?? '';
-    final Wallet source = resolveWalletForPackage(wallets, sourcePackage);
-    Wallet? destination = destinationPackage.isEmpty
-        ? null
-        : resolveWalletForPackage(wallets, destinationPackage);
-    if (destination == null || destination.id == source.id) {
-      destination = resolveTransferWallet(wallets, sourceId: source.id);
-    }
-    if (destination == null) {
-      final bool incoming = capture.direction == CaptureDirection.incoming;
-      await transactionRepository.addTransaction(
-        amount: capture.amount,
-        type: incoming ? TransactionType.income : TransactionType.expense,
-        walletId: source.id,
-        note: capture.note,
-        source: TransactionSource.notification,
-        createdAt: capture.postedAt,
-        nativeCaptureId: capture.id,
-      );
-      return;
-    }
-    await transactionRepository.addTransaction(
-      amount: capture.amount,
-      type: TransactionType.transfer,
-      walletId: source.id,
-      counterpartWalletId: destination.id,
-      note: capture.note,
-      source: TransactionSource.notification,
-      createdAt: capture.postedAt,
-      nativeCaptureId: capture.id,
-    );
   }
 
   Future<void> syncEditedCapture({
@@ -164,10 +132,11 @@ class CaptureImporter {
         continue;
       }
 
-      final int? categoryId = resolveDirtyCaptureCategory(
+      final int? categoryId = await resolveDirtyCaptureCategory(
         dirty,
         record,
         categories,
+        classifier,
       );
       final String? note = dirty.note;
       if (categoryId != record.categoryId || note != record.note) {
@@ -183,6 +152,14 @@ class CaptureImporter {
           excludeFromTarget: record.excludeFromTarget,
         );
         rulesChanged = rulesChanged || ruleChanged;
+        if (categoryId != null) {
+          await learningRecorder.record(
+            inputText: note ?? record.note ?? record.merchant ?? '',
+            merchant: record.merchant,
+            oldCategoryId: record.categoryId,
+            newCategoryId: categoryId,
+          );
+        }
       }
 
       await bridge.markSynced(<int>[dirty.id]);
