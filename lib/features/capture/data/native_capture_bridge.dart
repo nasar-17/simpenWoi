@@ -9,6 +9,10 @@ class NativeCaptureBridge {
   const NativeCaptureBridge();
 
   static const MethodChannel _channel = MethodChannel(CaptureChannel.name);
+  static const EventChannel _eventChannel = EventChannel(CaptureChannel.events);
+
+  Stream<void> get captureEvents =>
+      _eventChannel.receiveBroadcastStream().map<void>((dynamic _) {});
 
   Future<List<NativeCapture>> getPendingCaptures() async {
     final List<Object?>? raw = await _channel.invokeMethod<List<Object?>>(

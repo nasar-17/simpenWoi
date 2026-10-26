@@ -19,6 +19,7 @@ class CaptureSyncService {
   final CaptureImporter importer;
 
   bool _syncing = false;
+  bool _syncPending = false;
 
   Future<void> refreshNativeContext() {
     return contextPusher.pushLocalContext();
@@ -26,13 +27,17 @@ class CaptureSyncService {
 
   Future<void> sync() async {
     if (_syncing) {
+      _syncPending = true;
       return;
     }
     _syncing = true;
     try {
-      await contextPusher.pushLocalContext();
-      await importer.importPending();
-      await importer.syncDirtyCaptures();
+      do {
+        _syncPending = false;
+        await contextPusher.pushLocalContext();
+        await importer.importPending();
+        await importer.syncDirtyCaptures();
+      } while (_syncPending);
     } finally {
       _syncing = false;
     }

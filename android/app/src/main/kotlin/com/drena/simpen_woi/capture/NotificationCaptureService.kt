@@ -3,6 +3,7 @@ package com.drena.simpen_woi.capture
 import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import com.drena.simpen_woi.bridge.CaptureEventChannel
 import com.drena.simpen_woi.capture.inspector.CaptureInspector
 import com.drena.simpen_woi.capture.inspector.InspectorEntry
 import com.drena.simpen_woi.capture.notify.CaptureNotifier
@@ -111,7 +112,9 @@ class NotificationCaptureService : NotificationListenerService() {
             null,
         )
         val notifier = CaptureNotifier(this)
-        if (CaptureTransferStore(queue).tryPair(this, capture)) {
+        val paired = CaptureTransferStore(queue).tryPair(this, capture)
+        if (paired) {
+            CaptureEventChannel.emitQueueChanged()
             return
         }
         if (rule != null) {
@@ -120,6 +123,7 @@ class NotificationCaptureService : NotificationListenerService() {
             notifier.showQuestion(capture)
         }
         notifier.showSummary(queue.countUnanswered())
+        CaptureEventChannel.emitQueueChanged()
     }
 
     private fun inspectResult(

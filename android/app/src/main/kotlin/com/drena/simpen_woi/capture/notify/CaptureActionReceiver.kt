@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
+import com.drena.simpen_woi.bridge.CaptureEventChannel
 import com.drena.simpen_woi.capture.queue.CaptureExecutor
 import com.drena.simpen_woi.capture.queue.CaptureQueue
 import com.drena.simpen_woi.capture.queue.CaptureTransferStore
@@ -46,6 +47,7 @@ class CaptureActionReceiver : BroadcastReceiver() {
 
             CaptureNotificationContract.ACTION_UNPAIR -> {
                 CaptureTransferStore(queue).unpair(context, capture)
+                CaptureEventChannel.emitQueueChanged()
             }
         }
     }
@@ -67,6 +69,7 @@ class CaptureActionReceiver : BroadcastReceiver() {
         queue.updateCategory(capture.id, categoryId)
         queue.markDirtyIfImported(capture.id)
         CaptureNotifier(context).showSaved(capture.copy(categoryId = categoryId), categoryName)
+        CaptureEventChannel.emitQueueChanged()
     }
 
     private fun handleReply(
@@ -86,6 +89,7 @@ class CaptureActionReceiver : BroadcastReceiver() {
             capture.copy(note = reply),
             CaptureNotificationText.noteLabel(reply),
         )
+        CaptureEventChannel.emitQueueChanged()
     }
 
     private fun handleUndo(
@@ -95,5 +99,6 @@ class CaptureActionReceiver : BroadcastReceiver() {
     ) {
         queue.clearAnswer(capture.id)
         CaptureNotifier(context).showQuestion(capture.copy(categoryId = null, note = null))
+        CaptureEventChannel.emitQueueChanged()
     }
 }

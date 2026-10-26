@@ -1,6 +1,7 @@
 package com.drena.simpen_woi
 
 import com.drena.simpen_woi.bridge.CaptureChannelHandler
+import com.drena.simpen_woi.bridge.CaptureEventChannel
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 
@@ -8,5 +9,6 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         CaptureChannelHandler(this).attach(flutterEngine)
+        CaptureEventChannel.attach(flutterEngine)
     }
 }
