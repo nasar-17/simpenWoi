@@ -31,7 +31,9 @@ class TransactionWriter {
         walletId: walletId,
         counterpartWalletId: counterpartWalletId,
       );
-      final int? normalizedCategory = type == TransactionType.transfer
+      final int? normalizedCategory =
+          type == TransactionType.transfer ||
+              type == TransactionType.adjustment
           ? null
           : categoryId;
       final int id = await database
@@ -48,7 +50,9 @@ class TransactionWriter {
               source: Value<String>(source),
               createdAt: Value<DateTime>(createdAt ?? DateTime.now()),
               isCategorized: Value<bool>(
-                type == TransactionType.transfer || normalizedCategory != null,
+                type == TransactionType.transfer ||
+                    type == TransactionType.adjustment ||
+                    normalizedCategory != null,
               ),
               nativeCaptureId: Value<int?>(nativeCaptureId),
               excludeFromTarget: Value<bool>(
@@ -101,7 +105,9 @@ class TransactionWriter {
         walletId: walletId,
         counterpartWalletId: counterpartWalletId,
       );
-      final int? normalizedCategory = type == TransactionType.transfer
+      final int? normalizedCategory =
+          type == TransactionType.transfer ||
+              type == TransactionType.adjustment
           ? null
           : categoryId;
 
@@ -134,7 +140,9 @@ class TransactionWriter {
           note: Value<String?>(note),
           merchant: Value<String?>(merchant),
           isCategorized: Value<bool>(
-            type == TransactionType.transfer || normalizedCategory != null,
+            type == TransactionType.transfer ||
+                type == TransactionType.adjustment ||
+                normalizedCategory != null,
           ),
           excludeFromTarget: Value<bool>(
             type == TransactionType.expense && excludeFromTarget,
@@ -183,6 +191,16 @@ class TransactionWriter {
     required int walletId,
     required int? counterpartWalletId,
   }) {
+    if (type == TransactionType.adjustment) {
+      if (amount == 0) {
+        throw ArgumentError.value(
+          amount,
+          'amount',
+          'Penyesuaian saldo tidak boleh nol.',
+        );
+      }
+      return null;
+    }
     if (amount <= 0) {
       throw ArgumentError.value(
         amount,

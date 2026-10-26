@@ -3,6 +3,7 @@ abstract final class TransactionType {
   static const String expense = 'expense';
   static const String income = 'income';
   static const String transfer = 'transfer';
+  static const String adjustment = 'adjustment';
 }
 
 /// Nilai asal transaksi yang disimpan di database.
@@ -11,4 +12,5 @@ abstract final class TransactionSource {
   static const String notification = 'notification';
   static const String receipt = 'receipt';
   static const String voice = 'voice';
+  static const String assistant = 'assistant';
 }

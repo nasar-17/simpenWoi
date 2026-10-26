@@ -2839,6 +2839,709 @@ class SpendingTargetsCompanion extends UpdateCompanion<SpendingTarget> {
   }
 }
 
+class $LearningLogTable extends LearningLog
+    with TableInfo<$LearningLogTable, LearningLogEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LearningLogTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _inputTextMeta = const VerificationMeta(
+    'inputText',
+  );
+  @override
+  late final GeneratedColumn<String> inputText = GeneratedColumn<String>(
+    'input_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actionJsonMeta = const VerificationMeta(
+    'actionJson',
+  );
+  @override
+  late final GeneratedColumn<String> actionJson = GeneratedColumn<String>(
+    'action_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _outcomeMeta = const VerificationMeta(
+    'outcome',
+  );
+  @override
+  late final GeneratedColumn<String> outcome = GeneratedColumn<String>(
+    'outcome',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    inputText,
+    actionJson,
+    outcome,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'learning_log';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LearningLogEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('input_text')) {
+      context.handle(
+        _inputTextMeta,
+        inputText.isAcceptableOrUnknown(data['input_text']!, _inputTextMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_inputTextMeta);
+    }
+    if (data.containsKey('action_json')) {
+      context.handle(
+        _actionJsonMeta,
+        actionJson.isAcceptableOrUnknown(data['action_json']!, _actionJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionJsonMeta);
+    }
+    if (data.containsKey('outcome')) {
+      context.handle(
+        _outcomeMeta,
+        outcome.isAcceptableOrUnknown(data['outcome']!, _outcomeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_outcomeMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LearningLogEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LearningLogEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      inputText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}input_text'],
+      )!,
+      actionJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action_json'],
+      )!,
+      outcome: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}outcome'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $LearningLogTable createAlias(String alias) {
+    return $LearningLogTable(attachedDatabase, alias);
+  }
+}
+
+class LearningLogEntry extends DataClass
+    implements Insertable<LearningLogEntry> {
+  final int id;
+  final String inputText;
+  final String actionJson;
+  final String outcome;
+  final DateTime createdAt;
+  const LearningLogEntry({
+    required this.id,
+    required this.inputText,
+    required this.actionJson,
+    required this.outcome,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['input_text'] = Variable<String>(inputText);
+    map['action_json'] = Variable<String>(actionJson);
+    map['outcome'] = Variable<String>(outcome);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  LearningLogCompanion toCompanion(bool nullToAbsent) {
+    return LearningLogCompanion(
+      id: Value(id),
+      inputText: Value(inputText),
+      actionJson: Value(actionJson),
+      outcome: Value(outcome),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory LearningLogEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LearningLogEntry(
+      id: serializer.fromJson<int>(json['id']),
+      inputText: serializer.fromJson<String>(json['inputText']),
+      actionJson: serializer.fromJson<String>(json['actionJson']),
+      outcome: serializer.fromJson<String>(json['outcome']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'inputText': serializer.toJson<String>(inputText),
+      'actionJson': serializer.toJson<String>(actionJson),
+      'outcome': serializer.toJson<String>(outcome),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  LearningLogEntry copyWith({
+    int? id,
+    String? inputText,
+    String? actionJson,
+    String? outcome,
+    DateTime? createdAt,
+  }) => LearningLogEntry(
+    id: id ?? this.id,
+    inputText: inputText ?? this.inputText,
+    actionJson: actionJson ?? this.actionJson,
+    outcome: outcome ?? this.outcome,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  LearningLogEntry copyWithCompanion(LearningLogCompanion data) {
+    return LearningLogEntry(
+      id: data.id.present ? data.id.value : this.id,
+      inputText: data.inputText.present ? data.inputText.value : this.inputText,
+      actionJson: data.actionJson.present
+          ? data.actionJson.value
+          : this.actionJson,
+      outcome: data.outcome.present ? data.outcome.value : this.outcome,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LearningLogEntry(')
+          ..write('id: $id, ')
+          ..write('inputText: $inputText, ')
+          ..write('actionJson: $actionJson, ')
+          ..write('outcome: $outcome, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, inputText, actionJson, outcome, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LearningLogEntry &&
+          other.id == this.id &&
+          other.inputText == this.inputText &&
+          other.actionJson == this.actionJson &&
+          other.outcome == this.outcome &&
+          other.createdAt == this.createdAt);
+}
+
+class LearningLogCompanion extends UpdateCompanion<LearningLogEntry> {
+  final Value<int> id;
+  final Value<String> inputText;
+  final Value<String> actionJson;
+  final Value<String> outcome;
+  final Value<DateTime> createdAt;
+  const LearningLogCompanion({
+    this.id = const Value.absent(),
+    this.inputText = const Value.absent(),
+    this.actionJson = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  LearningLogCompanion.insert({
+    this.id = const Value.absent(),
+    required String inputText,
+    required String actionJson,
+    required String outcome,
+    this.createdAt = const Value.absent(),
+  }) : inputText = Value(inputText),
+       actionJson = Value(actionJson),
+       outcome = Value(outcome);
+  static Insertable<LearningLogEntry> custom({
+    Expression<int>? id,
+    Expression<String>? inputText,
+    Expression<String>? actionJson,
+    Expression<String>? outcome,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (inputText != null) 'input_text': inputText,
+      if (actionJson != null) 'action_json': actionJson,
+      if (outcome != null) 'outcome': outcome,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  LearningLogCompanion copyWith({
+    Value<int>? id,
+    Value<String>? inputText,
+    Value<String>? actionJson,
+    Value<String>? outcome,
+    Value<DateTime>? createdAt,
+  }) {
+    return LearningLogCompanion(
+      id: id ?? this.id,
+      inputText: inputText ?? this.inputText,
+      actionJson: actionJson ?? this.actionJson,
+      outcome: outcome ?? this.outcome,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (inputText.present) {
+      map['input_text'] = Variable<String>(inputText.value);
+    }
+    if (actionJson.present) {
+      map['action_json'] = Variable<String>(actionJson.value);
+    }
+    if (outcome.present) {
+      map['outcome'] = Variable<String>(outcome.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LearningLogCompanion(')
+          ..write('id: $id, ')
+          ..write('inputText: $inputText, ')
+          ..write('actionJson: $actionJson, ')
+          ..write('outcome: $outcome, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MlTokenStatsTable extends MlTokenStats
+    with TableInfo<$MlTokenStatsTable, MlTokenStat> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MlTokenStatsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _tokenMeta = const VerificationMeta('token');
+  @override
+  late final GeneratedColumn<String> token = GeneratedColumn<String>(
+    'token',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _countMeta = const VerificationMeta('count');
+  @override
+  late final GeneratedColumn<int> count = GeneratedColumn<int>(
+    'count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    token,
+    categoryId,
+    count,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ml_token_stats';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MlTokenStat> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('token')) {
+      context.handle(
+        _tokenMeta,
+        token.isAcceptableOrUnknown(data['token']!, _tokenMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokenMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('count')) {
+      context.handle(
+        _countMeta,
+        count.isAcceptableOrUnknown(data['count']!, _countMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MlTokenStat map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MlTokenStat(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      token: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}token'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      count: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}count'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MlTokenStatsTable createAlias(String alias) {
+    return $MlTokenStatsTable(attachedDatabase, alias);
+  }
+}
+
+class MlTokenStat extends DataClass implements Insertable<MlTokenStat> {
+  final int id;
+  final String token;
+  final int categoryId;
+  final int count;
+  final DateTime updatedAt;
+  const MlTokenStat({
+    required this.id,
+    required this.token,
+    required this.categoryId,
+    required this.count,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['token'] = Variable<String>(token);
+    map['category_id'] = Variable<int>(categoryId);
+    map['count'] = Variable<int>(count);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MlTokenStatsCompanion toCompanion(bool nullToAbsent) {
+    return MlTokenStatsCompanion(
+      id: Value(id),
+      token: Value(token),
+      categoryId: Value(categoryId),
+      count: Value(count),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MlTokenStat.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MlTokenStat(
+      id: serializer.fromJson<int>(json['id']),
+      token: serializer.fromJson<String>(json['token']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      count: serializer.fromJson<int>(json['count']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'token': serializer.toJson<String>(token),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'count': serializer.toJson<int>(count),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MlTokenStat copyWith({
+    int? id,
+    String? token,
+    int? categoryId,
+    int? count,
+    DateTime? updatedAt,
+  }) => MlTokenStat(
+    id: id ?? this.id,
+    token: token ?? this.token,
+    categoryId: categoryId ?? this.categoryId,
+    count: count ?? this.count,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MlTokenStat copyWithCompanion(MlTokenStatsCompanion data) {
+    return MlTokenStat(
+      id: data.id.present ? data.id.value : this.id,
+      token: data.token.present ? data.token.value : this.token,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      count: data.count.present ? data.count.value : this.count,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MlTokenStat(')
+          ..write('id: $id, ')
+          ..write('token: $token, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('count: $count, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, token, categoryId, count, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MlTokenStat &&
+          other.id == this.id &&
+          other.token == this.token &&
+          other.categoryId == this.categoryId &&
+          other.count == this.count &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MlTokenStatsCompanion extends UpdateCompanion<MlTokenStat> {
+  final Value<int> id;
+  final Value<String> token;
+  final Value<int> categoryId;
+  final Value<int> count;
+  final Value<DateTime> updatedAt;
+  const MlTokenStatsCompanion({
+    this.id = const Value.absent(),
+    this.token = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.count = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  MlTokenStatsCompanion.insert({
+    this.id = const Value.absent(),
+    required String token,
+    required int categoryId,
+    this.count = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : token = Value(token),
+       categoryId = Value(categoryId);
+  static Insertable<MlTokenStat> custom({
+    Expression<int>? id,
+    Expression<String>? token,
+    Expression<int>? categoryId,
+    Expression<int>? count,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (token != null) 'token': token,
+      if (categoryId != null) 'category_id': categoryId,
+      if (count != null) 'count': count,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  MlTokenStatsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? token,
+    Value<int>? categoryId,
+    Value<int>? count,
+    Value<DateTime>? updatedAt,
+  }) {
+    return MlTokenStatsCompanion(
+      id: id ?? this.id,
+      token: token ?? this.token,
+      categoryId: categoryId ?? this.categoryId,
+      count: count ?? this.count,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (token.present) {
+      map['token'] = Variable<String>(token.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (count.present) {
+      map['count'] = Variable<int>(count.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MlTokenStatsCompanion(')
+          ..write('id: $id, ')
+          ..write('token: $token, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('count: $count, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2853,6 +3556,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SpendingTargetsTable spendingTargets = $SpendingTargetsTable(
     this,
   );
+  late final $LearningLogTable learningLog = $LearningLogTable(this);
+  late final $MlTokenStatsTable mlTokenStats = $MlTokenStatsTable(this);
   late final Index idxTransactionsCreatedAt = Index(
     'idx_transactions_created_at',
     'CREATE INDEX idx_transactions_created_at ON transactions (created_at)',
@@ -2869,6 +3574,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_transactions_is_categorized',
     'CREATE INDEX idx_transactions_is_categorized ON transactions (is_categorized)',
   );
+  late final Index idxMlTokenStatsTokenCategory = Index(
+    'idx_ml_token_stats_token_category',
+    'CREATE UNIQUE INDEX idx_ml_token_stats_token_category ON ml_token_stats (token, category_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2881,11 +3590,24 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     savingsDeposits,
     merchantRules,
     spendingTargets,
+    learningLog,
+    mlTokenStats,
     idxTransactionsCreatedAt,
     idxTransactionsWalletId,
     idxTransactionsCategoryId,
     idxTransactionsIsCategorized,
+    idxMlTokenStatsTokenCategory,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'categories',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('ml_token_stats', kind: UpdateKind.delete)],
+    ),
+  ]);
 }
 
 typedef $$WalletsTableCreateCompanionBuilder =
@@ -3143,6 +3865,24 @@ final class $$CategoriesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$MlTokenStatsTable, List<MlTokenStat>>
+  _mlTokenStatsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.mlTokenStats,
+    aliasName: 'categories__id__ml_token_stats__category_id',
+  );
+
+  $$MlTokenStatsTableProcessedTableManager get mlTokenStatsRefs {
+    final manager = $$MlTokenStatsTableTableManager(
+      $_db,
+      $_db.mlTokenStats,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_mlTokenStatsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$CategoriesTableFilterComposer
@@ -3225,6 +3965,31 @@ class $$CategoriesTableFilterComposer
           }) => $$MerchantRulesTableFilterComposer(
             $db: $db,
             $table: $db.merchantRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> mlTokenStatsRefs(
+    Expression<bool> Function($$MlTokenStatsTableFilterComposer f) f,
+  ) {
+    final $$MlTokenStatsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mlTokenStats,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MlTokenStatsTableFilterComposer(
+            $db: $db,
+            $table: $db.mlTokenStats,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3351,6 +4116,31 @@ class $$CategoriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> mlTokenStatsRefs<T extends Object>(
+    Expression<T> Function($$MlTokenStatsTableAnnotationComposer a) f,
+  ) {
+    final $$MlTokenStatsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mlTokenStats,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MlTokenStatsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mlTokenStats,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager
@@ -3369,6 +4159,7 @@ class $$CategoriesTableTableManager
           PrefetchHooks Function({
             bool transactionsRefs,
             bool merchantRulesRefs,
+            bool mlTokenStatsRefs,
           })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
@@ -3423,12 +4214,17 @@ class $$CategoriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({transactionsRefs = false, merchantRulesRefs = false}) {
+              ({
+                transactionsRefs = false,
+                merchantRulesRefs = false,
+                mlTokenStatsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (transactionsRefs) db.transactions,
                     if (merchantRulesRefs) db.merchantRules,
+                    if (mlTokenStatsRefs) db.mlTokenStats,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -3473,6 +4269,26 @@ class $$CategoriesTableTableManager
                           referencedColumn: 'category_id',
                           typedResults: items,
                         ),
+                      if (mlTokenStatsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Category,
+                          $CategoriesTable,
+                          MlTokenStat,
+                          $MlTokenStatsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._mlTokenStatsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).mlTokenStatsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'category_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3493,7 +4309,11 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (Category, $$CategoriesTableReferences),
       Category,
-      PrefetchHooks Function({bool transactionsRefs, bool merchantRulesRefs})
+      PrefetchHooks Function({
+        bool transactionsRefs,
+        bool merchantRulesRefs,
+        bool mlTokenStatsRefs,
+      })
     >;
 typedef $$TransactionsTableCreateCompanionBuilder =
     TransactionsCompanion Function({
@@ -5268,6 +6088,522 @@ typedef $$SpendingTargetsTableProcessedTableManager =
       SpendingTarget,
       PrefetchHooks Function()
     >;
+typedef $$LearningLogTableCreateCompanionBuilder =
+    LearningLogCompanion Function({
+      Value<int> id,
+      required String inputText,
+      required String actionJson,
+      required String outcome,
+      Value<DateTime> createdAt,
+    });
+typedef $$LearningLogTableUpdateCompanionBuilder =
+    LearningLogCompanion Function({
+      Value<int> id,
+      Value<String> inputText,
+      Value<String> actionJson,
+      Value<String> outcome,
+      Value<DateTime> createdAt,
+    });
+
+class $$LearningLogTableFilterComposer
+    extends Composer<_$AppDatabase, $LearningLogTable> {
+  $$LearningLogTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get inputText => $composableBuilder(
+    column: $table.inputText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actionJson => $composableBuilder(
+    column: $table.actionJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get outcome => $composableBuilder(
+    column: $table.outcome,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LearningLogTableOrderingComposer
+    extends Composer<_$AppDatabase, $LearningLogTable> {
+  $$LearningLogTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get inputText => $composableBuilder(
+    column: $table.inputText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actionJson => $composableBuilder(
+    column: $table.actionJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get outcome => $composableBuilder(
+    column: $table.outcome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LearningLogTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LearningLogTable> {
+  $$LearningLogTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get inputText =>
+      $composableBuilder(column: $table.inputText, builder: (column) => column);
+
+  GeneratedColumn<String> get actionJson => $composableBuilder(
+    column: $table.actionJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get outcome =>
+      $composableBuilder(column: $table.outcome, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$LearningLogTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LearningLogTable,
+          LearningLogEntry,
+          $$LearningLogTableFilterComposer,
+          $$LearningLogTableOrderingComposer,
+          $$LearningLogTableAnnotationComposer,
+          $$LearningLogTableCreateCompanionBuilder,
+          $$LearningLogTableUpdateCompanionBuilder,
+          (
+            LearningLogEntry,
+            BaseReferences<_$AppDatabase, $LearningLogTable, LearningLogEntry>,
+          ),
+          LearningLogEntry,
+          PrefetchHooks Function()
+        > {
+  $$LearningLogTableTableManager(_$AppDatabase db, $LearningLogTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LearningLogTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LearningLogTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LearningLogTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> inputText = const Value.absent(),
+                Value<String> actionJson = const Value.absent(),
+                Value<String> outcome = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => LearningLogCompanion(
+                id: id,
+                inputText: inputText,
+                actionJson: actionJson,
+                outcome: outcome,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String inputText,
+                required String actionJson,
+                required String outcome,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => LearningLogCompanion.insert(
+                id: id,
+                inputText: inputText,
+                actionJson: actionJson,
+                outcome: outcome,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$LearningLogTable, LearningLogEntry>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $LearningLogTable,
+                    LearningLogEntry
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LearningLogTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LearningLogTable,
+      LearningLogEntry,
+      $$LearningLogTableFilterComposer,
+      $$LearningLogTableOrderingComposer,
+      $$LearningLogTableAnnotationComposer,
+      $$LearningLogTableCreateCompanionBuilder,
+      $$LearningLogTableUpdateCompanionBuilder,
+      (
+        LearningLogEntry,
+        BaseReferences<_$AppDatabase, $LearningLogTable, LearningLogEntry>,
+      ),
+      LearningLogEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$MlTokenStatsTableCreateCompanionBuilder =
+    MlTokenStatsCompanion Function({
+      Value<int> id,
+      required String token,
+      required int categoryId,
+      Value<int> count,
+      Value<DateTime> updatedAt,
+    });
+typedef $$MlTokenStatsTableUpdateCompanionBuilder =
+    MlTokenStatsCompanion Function({
+      Value<int> id,
+      Value<String> token,
+      Value<int> categoryId,
+      Value<int> count,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$MlTokenStatsTableReferences
+    extends BaseReferences<_$AppDatabase, $MlTokenStatsTable, MlTokenStat> {
+  $$MlTokenStatsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias('ml_token_stats__category_id__categories__id');
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<int>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MlTokenStatsTableFilterComposer
+    extends Composer<_$AppDatabase, $MlTokenStatsTable> {
+  $$MlTokenStatsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get token => $composableBuilder(
+    column: $table.token,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get count => $composableBuilder(
+    column: $table.count,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MlTokenStatsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MlTokenStatsTable> {
+  $$MlTokenStatsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get token => $composableBuilder(
+    column: $table.token,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get count => $composableBuilder(
+    column: $table.count,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MlTokenStatsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MlTokenStatsTable> {
+  $$MlTokenStatsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get token =>
+      $composableBuilder(column: $table.token, builder: (column) => column);
+
+  GeneratedColumn<int> get count =>
+      $composableBuilder(column: $table.count, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MlTokenStatsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MlTokenStatsTable,
+          MlTokenStat,
+          $$MlTokenStatsTableFilterComposer,
+          $$MlTokenStatsTableOrderingComposer,
+          $$MlTokenStatsTableAnnotationComposer,
+          $$MlTokenStatsTableCreateCompanionBuilder,
+          $$MlTokenStatsTableUpdateCompanionBuilder,
+          (MlTokenStat, $$MlTokenStatsTableReferences),
+          MlTokenStat,
+          PrefetchHooks Function({bool categoryId})
+        > {
+  $$MlTokenStatsTableTableManager(_$AppDatabase db, $MlTokenStatsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MlTokenStatsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MlTokenStatsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MlTokenStatsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> token = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<int> count = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => MlTokenStatsCompanion(
+                id: id,
+                token: token,
+                categoryId: categoryId,
+                count: count,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String token,
+                required int categoryId,
+                Value<int> count = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => MlTokenStatsCompanion.insert(
+                id: id,
+                token: token,
+                categoryId: categoryId,
+                count: count,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MlTokenStatsTable, MlTokenStat>(table),
+                  $$MlTokenStatsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (categoryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.categoryId,
+                                referencedTable: $$MlTokenStatsTableReferences
+                                    ._categoryIdTable(db),
+                                referencedColumn: $$MlTokenStatsTableReferences
+                                    ._categoryIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MlTokenStatsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MlTokenStatsTable,
+      MlTokenStat,
+      $$MlTokenStatsTableFilterComposer,
+      $$MlTokenStatsTableOrderingComposer,
+      $$MlTokenStatsTableAnnotationComposer,
+      $$MlTokenStatsTableCreateCompanionBuilder,
+      $$MlTokenStatsTableUpdateCompanionBuilder,
+      (MlTokenStat, $$MlTokenStatsTableReferences),
+      MlTokenStat,
+      PrefetchHooks Function({bool categoryId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5286,4 +6622,8 @@ class $AppDatabaseManager {
       $$MerchantRulesTableTableManager(_db, _db.merchantRules);
   $$SpendingTargetsTableTableManager get spendingTargets =>
       $$SpendingTargetsTableTableManager(_db, _db.spendingTargets);
+  $$LearningLogTableTableManager get learningLog =>
+      $$LearningLogTableTableManager(_db, _db.learningLog);
+  $$MlTokenStatsTableTableManager get mlTokenStats =>
+      $$MlTokenStatsTableTableManager(_db, _db.mlTokenStats);
 }

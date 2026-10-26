@@ -4,6 +4,9 @@ import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
 
 int balanceDelta({required String type, required int amount}) {
+  if (type == TransactionType.adjustment) {
+    return amount;
+  }
   return type == TransactionType.income ? amount : -amount;
 }
 

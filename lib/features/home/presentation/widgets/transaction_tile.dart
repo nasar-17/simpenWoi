@@ -23,10 +23,19 @@ class TransactionTile extends StatelessWidget {
     final ColorScheme scheme = Theme.of(context).colorScheme;
     final bool isExpense = detail.transaction.type == TransactionType.expense;
     final bool isTransfer = detail.transaction.type == TransactionType.transfer;
+    final bool isAdjustment =
+        detail.transaction.type == TransactionType.adjustment;
+    final int amount = detail.transaction.amount;
     final Color amountColor = isExpense ? scheme.error : scheme.primary;
-    final String sign = isTransfer ? '' : (isExpense ? '-' : '+');
+    final String sign = isTransfer
+        ? ''
+        : isAdjustment
+        ? (amount < 0 ? '-' : '+')
+        : (isExpense ? '-' : '+');
     final String title = isTransfer
         ? 'Transfer'
+        : isAdjustment
+        ? 'Penyesuaian saldo'
         : detail.category?.name ?? UiText.noCategory;
     final String walletText = isTransfer
         ? '${detail.wallet.name} \u2192 '
@@ -64,7 +73,9 @@ class TransactionTile extends StatelessWidget {
                     color: scheme.onSurfaceVariant,
                   ),
                 ),
-                if (!isTransfer && !detail.transaction.isCategorized)
+                if (!isTransfer &&
+                    !isAdjustment &&
+                    !detail.transaction.isCategorized)
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -85,7 +96,7 @@ class TransactionTile extends StatelessWidget {
             ),
           ),
           trailing: Text(
-            '$sign${formatRupiah(detail.transaction.amount)}',
+            '$sign${formatRupiah(amount.abs())}',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: amountColor,

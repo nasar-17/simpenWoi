@@ -4,7 +4,9 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'migrations.dart';
 import 'seed_data.dart';
 import 'tables/categories.dart';
+import 'tables/learning_log.dart';
 import 'tables/merchant_rules.dart';
+import 'tables/ml_token_stats.dart';
 import 'tables/savings_goals.dart';
 import 'tables/spending_targets.dart';
 import 'tables/transactions.dart';
@@ -21,13 +23,15 @@ part 'app_database.g.dart';
     SavingsDeposits,
     MerchantRules,
     SpendingTargets,
+    LearningLog,
+    MlTokenStats,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'simpen_woi'));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => buildMigrationStrategy(this);

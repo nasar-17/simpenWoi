@@ -41,6 +41,10 @@ MigrationStrategy buildMigrationStrategy(AppDatabase database) {
         );
         await migrator.createTable(database.spendingTargets);
       }
+      if (from < 8) {
+        await migrator.createTable(database.learningLog);
+        await migrator.createTable(database.mlTokenStats);
+      }
     },
     beforeOpen: (OpeningDetails details) async {
       await database.customStatement('PRAGMA foreign_keys = ON');
