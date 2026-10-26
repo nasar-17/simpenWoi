@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../../../core/utils/currency.dart';
 import '../../../learning/presentation/providers/learning_providers.dart';
@@ -42,6 +43,48 @@ class _SettingsManagementSectionState
 
   Future<void> _showGoldenSetDebug() async {
     context.push('/settings/golden-set-debug');
+  }
+
+  Future<void> _exportLearningLog() async {
+    try {
+      String? outputPath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Export log pembelajaran',
+        fileName: 'learning_log_export.jsonl',
+        type: FileType.custom,
+        allowedExtensions: ['jsonl'],
+      );
+      if (outputPath == null) {
+        return; // User cancelled
+      }
+      final List<LearningLogEntry> entries =
+          await ref.read(learningRepositoryProvider).allEntries();
+      final file = File(outputPath);
+      await file.openWrite()
+        ..writeAll(entries.map((entry) {
+          final Map<String, dynamic> json = <String, dynamic>{
+            'id': entry.id,
+            'input_text': entry.inputText,
+            'action_json': entry.actionJson,
+            'outcome': entry.outcome,
+            'created_at': entry.createdAt.toIso8601String(),
+          };
+          return jsonEncode(json);
+        }))
+        ..close();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Log pembelajaran berhasil diekspor.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengekspor: ${error.toString()}'),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -163,6 +206,13 @@ class _SettingsManagementSectionState
                 subtitle: const Text('Uji prediksi kategori'),
                 trailing: const Icon(Icons.bug_report),
                 onTap: _showGoldenSetDebug,
+              ),
+              const Divider(height: 1),
+              ListTile(
+                title: const Text('Ekspor log pembelajaran'),
+                subtitle: const Text('Simpan data pembelajaran ke file'),
+                trailing: const Icon(Icons.file_download_outlined),
+                onTap: _exportLearningLog,
               ),
             ],
           ),
