@@ -94,6 +94,12 @@ GoRouter createAppRouter() {
         builder: (BuildContext context, GoRouterState state) =>
             const WalletsPage(),
       ),
+      GoRoute(
+        path: '/settings/golden-set-debug',
+        name: 'golden-set-debug',
+        builder: (BuildContext context, GoRouterState state) =>
+            const GoldenSetDebugPage(),
+      ),
     ],
   );
 }
