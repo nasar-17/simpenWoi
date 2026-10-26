@@ -111,6 +111,8 @@ class _AssistantInputPageState extends ConsumerState<AssistantInputPage> {
                             (int itemIndex, CategoryOption option) => controller
                                 .selectCategory(entry.id, itemIndex, option),
                         onEdit: (int itemIndex) => _editEntry(entry, itemIndex),
+                        onCreateCategory: (int itemIndex) => controller
+                            .createSuggestedCategory(entry.id, itemIndex),
                         onSuggestion: _useSuggestion,
                       );
                     },

@@ -36,6 +36,7 @@ class ProposedAction {
     List<String>? details,
     List<CategoryOption>? options,
     String? suggestedCategoryName,
+    bool clearSuggestedCategory = false,
   }) {
     return ProposedAction(
       action: action ?? this.action,
@@ -44,8 +45,9 @@ class ProposedAction {
       summary: summary ?? this.summary,
       details: details ?? this.details,
       options: options ?? this.options,
-      suggestedCategoryName:
-          suggestedCategoryName ?? this.suggestedCategoryName,
+      suggestedCategoryName: clearSuggestedCategory
+          ? null
+          : suggestedCategoryName ?? this.suggestedCategoryName,
     );
   }
 }

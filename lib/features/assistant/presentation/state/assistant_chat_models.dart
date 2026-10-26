@@ -9,6 +9,7 @@ class ChatProposal {
     required this.proposal,
     this.status = ProposalStatus.pending,
     this.wasCorrected = false,
+    this.originalCategoryId,
     this.error,
     this.undo,
   });
@@ -16,6 +17,7 @@ class ChatProposal {
   final ProposedAction proposal;
   final ProposalStatus status;
   final bool wasCorrected;
+  final int? originalCategoryId;
   final String? error;
   final Future<void> Function()? undo;
 
@@ -23,6 +25,7 @@ class ChatProposal {
     ProposedAction? proposal,
     ProposalStatus? status,
     bool? wasCorrected,
+    int? originalCategoryId,
     String? error,
     Future<void> Function()? undo,
   }) {
@@ -30,6 +33,7 @@ class ChatProposal {
       proposal: proposal ?? this.proposal,
       status: status ?? this.status,
       wasCorrected: wasCorrected ?? this.wasCorrected,
+      originalCategoryId: originalCategoryId ?? this.originalCategoryId,
       error: error ?? this.error,
       undo: undo ?? this.undo,
     );

@@ -14,6 +14,7 @@ class AssistantMessageBubble extends StatelessWidget {
     required this.onUndo,
     required this.onSelectCategory,
     required this.onEdit,
+    required this.onCreateCategory,
     required this.onSuggestion,
   });
 
@@ -23,6 +24,7 @@ class AssistantMessageBubble extends StatelessWidget {
   final void Function(int index) onUndo;
   final void Function(int index, CategoryOption option) onSelectCategory;
   final void Function(int index) onEdit;
+  final void Function(int index) onCreateCategory;
   final ValueChanged<String> onSuggestion;
 
   @override
@@ -81,6 +83,10 @@ class AssistantMessageBubble extends StatelessWidget {
                 onSelectCategory: (CategoryOption option) =>
                     onSelectCategory(i, option),
                 onEdit: _canEdit(entry.proposals[i]) ? () => onEdit(i) : null,
+                onCreateCategory: entry.proposals[i].status ==
+                        ProposalStatus.pending
+                    ? () => onCreateCategory(i)
+                    : null,
               ),
           ],
         ),

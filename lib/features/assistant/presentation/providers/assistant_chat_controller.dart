@@ -71,11 +71,8 @@ class AssistantChatController extends Notifier<AssistantChatState> {
       final AssistantExecution result = await ref
           .read(assistantExecutorProvider)
           .execute(item.proposal.action);
-      _setProposal(
-        entryId,
-        index,
-        item.copyWith(status: ProposalStatus.saved, undo: result.undo),
-      );
+      _setProposal(entryId, index,
+          item.copyWith(status: ProposalStatus.saved, undo: result.undo));
       final ChatEntry? entry = state.entryById(entryId);
       if (entry != null) {
         await recordLearning(
@@ -83,18 +80,13 @@ class AssistantChatController extends Notifier<AssistantChatState> {
           entry.sourceInput,
           item.proposal,
           item.wasCorrected ? 'corrected' : 'accepted',
+          originalCategoryId: item.originalCategoryId,
         );
       }
       _addAssistant(result.message);
     } catch (error) {
-      _setProposal(
-        entryId,
-        index,
-        item.copyWith(
-          status: ProposalStatus.error,
-          error: chatErrorMessage(error),
-        ),
-      );
+      _setProposal(entryId, index, item.copyWith(
+          status: ProposalStatus.error, error: chatErrorMessage(error)));
       _addAssistant(chatErrorMessage(error), isError: true);
     }
   }
@@ -104,11 +96,8 @@ class AssistantChatController extends Notifier<AssistantChatState> {
     if (item == null || item.status != ProposalStatus.pending) {
       return;
     }
-    _setProposal(
-      entryId,
-      index,
-      item.copyWith(status: ProposalStatus.rejected),
-    );
+    _setProposal(entryId, index,
+        item.copyWith(status: ProposalStatus.rejected));
     final ChatEntry? entry = state.entryById(entryId);
     if (entry != null) {
       await recordLearning(
@@ -116,6 +105,7 @@ class AssistantChatController extends Notifier<AssistantChatState> {
         entry.sourceInput,
         item.proposal,
         'rejected',
+        originalCategoryId: item.originalCategoryId,
       );
     }
     _addAssistant('Baik, usulan ini tidak disimpan.');
@@ -130,17 +120,13 @@ class AssistantChatController extends Notifier<AssistantChatState> {
     }
     try {
       await item.undo!();
-      _setProposal(
-        entryId,
-        index,
-        item.copyWith(status: ProposalStatus.undone),
-      );
+      _setProposal(entryId, index,
+          item.copyWith(status: ProposalStatus.undone));
       _addAssistant('Perubahan dibatalkan.');
     } catch (error) {
       _addAssistant(chatErrorMessage(error), isError: true);
     }
   }
-
   void selectCategory(int entryId, int index, CategoryOption option) {
     final ChatProposal? item = proposalAt(state, entryId, index);
     if (item == null || item.status != ProposalStatus.pending) {
@@ -148,24 +134,33 @@ class AssistantChatController extends Notifier<AssistantChatState> {
     }
     final ProposedAction? updated = withSelectedCategory(item.proposal, option);
     if (updated != null) {
-      _setProposal(
-        entryId,
-        index,
-        item.copyWith(proposal: updated, wasCorrected: true),
-      );
+      _setProposal(entryId, index,
+          item.copyWith(proposal: updated, wasCorrected: true));
     }
   }
-
   void applyEdit(int entryId, int index, ProposedAction proposal) {
     final ChatProposal? item = proposalAt(state, entryId, index);
     if (item == null || item.status != ProposalStatus.pending) {
       return;
     }
-    _setProposal(
-      entryId,
-      index,
-      item.copyWith(proposal: proposal, wasCorrected: true),
-    );
+    _setProposal(entryId, index,
+        item.copyWith(proposal: proposal, wasCorrected: true));
+  }
+
+  Future<void> createSuggestedCategory(int entryId, int index) async {
+    final ChatProposal? item = proposalAt(state, entryId, index);
+    if (item == null || item.status != ProposalStatus.pending) return;
+    try {
+      final ProposedAction? updated = await createCategoryForProposal(
+          executor: ref.read(assistantExecutorProvider),
+          proposal: item.proposal);
+      if (updated == null) return;
+      _setProposal(entryId, index,
+          item.copyWith(proposal: updated, wasCorrected: true));
+      _addAssistant('Kategori baru dipilih. Periksa lalu simpan.');
+    } catch (error) {
+      _addAssistant(chatErrorMessage(error), isError: true);
+    }
   }
 
   void _addAssistant(

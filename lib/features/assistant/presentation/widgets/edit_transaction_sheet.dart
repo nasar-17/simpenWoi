@@ -99,13 +99,13 @@ class _EditTransactionSheetState extends ConsumerState<_EditTransactionSheet> {
         action: updated,
         confidence: 1,
         options: const <CategoryOption>[],
+        clearSuggestedCategory: true,
         summary:
             '$typeLabel ${formatRupiah(amount)} \u2014 '
             '${categoryName ?? 'kategori belum dipilih'}',
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Padding(

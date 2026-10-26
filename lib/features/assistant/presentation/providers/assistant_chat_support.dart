@@ -66,7 +66,12 @@ Future<void> handleAssistantProposals({
         : 'Saya menemukan ${actionable.length} usulan. Periksa dulu.',
     const <String>[],
     actionable
-        .map((ProposedAction proposal) => ChatProposal(proposal: proposal))
+        .map(
+          (ProposedAction proposal) => ChatProposal(
+            proposal: proposal,
+            originalCategoryId: proposalCategoryId(proposal),
+          ),
+        )
         .toList(growable: false),
     input,
     false,
@@ -105,22 +110,78 @@ ProposedAction? withSelectedCategory(
     action: updated,
     confidence: 1,
     options: const <CategoryOption>[],
+    clearSuggestedCategory: true,
     summary:
         '$typeLabel ${formatRupiah(action.amount)} \u2014 '
         '${option.name}',
   );
 }
 
+int? proposalCategoryId(ProposedAction proposal) {
+  final AssistantAction action = proposal.action;
+  return action is AddTransactionAction ? action.categoryId : null;
+}
+
 Future<void> recordLearning(
   LearningRepository repository,
   String input,
   ProposedAction proposal,
-  String outcome,
-) {
-  return repository.record(
+  String outcome, {
+  int? originalCategoryId,
+}) async {
+  final AssistantAction action = proposal.action;
+  await repository.record(
     inputText: input,
-    actionJson: jsonEncode(actionToJson(proposal.action)),
+    actionJson: jsonEncode(actionToJson(action)),
     outcome: outcome,
+  );
+  await repository.applyFeedback(
+    inputText: input,
+    outcome: outcome,
+    oldCategoryId: originalCategoryId,
+    newCategoryId: outcome == 'rejected' || action is! AddTransactionAction
+        ? null
+        : action.categoryId,
+    merchant: action is AddTransactionAction ? action.merchant : null,
+  );
+}
+
+Future<ProposedAction?> createCategoryForProposal({
+  required AssistantExecutor executor,
+  required ProposedAction proposal,
+}) async {
+  final AssistantAction action = proposal.action;
+  final String? name = proposal.suggestedCategoryName?.trim();
+  if (action is! AddTransactionAction || name == null || name.isEmpty) {
+    return null;
+  }
+  final AssistantExecution result = await executor.execute(
+    CreateCategoryAction(name: name, type: action.type),
+  );
+  final int? categoryId = result.createdCategoryId;
+  if (categoryId == null) {
+    return null;
+  }
+  final AddTransactionAction updated = AddTransactionAction(
+    amount: action.amount,
+    type: action.type,
+    walletId: action.walletId,
+    categoryId: categoryId,
+    note: action.note,
+    merchant: action.merchant,
+    excludeFromTarget: action.excludeFromTarget,
+    createdAt: action.createdAt,
+  );
+  final String typeLabel = action.type == TransactionType.income
+      ? 'Tambah pemasukan'
+      : 'Tambah pengeluaran';
+  return ProposedAction(
+    action: updated,
+    confidence: 1,
+    source: proposal.source,
+    summary:
+        '$typeLabel ${formatRupiah(action.amount)} \u2014 $name',
+    details: proposal.details,
   );
 }
 

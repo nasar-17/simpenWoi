@@ -6,12 +6,14 @@ import '../../../../core/assistant/assistant_query_repository.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/database/database_provider.dart';
 import '../../../categories/presentation/providers/category_providers.dart';
+import '../../../learning/presentation/providers/learning_providers.dart';
 import '../../../targets/presentation/providers/spending_target_providers.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../../../wallets/presentation/providers/wallet_providers.dart';
 import '../../domain/ai_provider.dart';
 import '../../domain/category_scorer.dart';
 import '../../domain/input_engine.dart';
+import '../../domain/naive_bayes_category_scorer.dart';
 
 final Provider<AssistantDataRepository> assistantDataRepositoryProvider =
     Provider<AssistantDataRepository>(
@@ -41,7 +43,12 @@ final Provider<AssistantExecutor> assistantExecutorProvider =
     });
 
 final Provider<CategoryScorer> categoryScorerProvider =
-    Provider<CategoryScorer>((ref) => const NullCategoryScorer());
+    Provider<CategoryScorer>(
+      (ref) => NaiveBayesCategoryScorer(
+        learningRepository: ref.watch(learningRepositoryProvider),
+        lexiconRepository: ref.watch(lexiconRepositoryProvider),
+      ),
+    );
 
 final Provider<AiProvider> aiProviderProvider = Provider<AiProvider>(
   (ref) => const NullAiProvider(),

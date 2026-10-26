@@ -82,6 +82,7 @@ class AssistantExecutor {
     return AssistantExecution(
       message: 'Kategori "${action.name.trim()}" dibuat.',
       undo: () => categoryRepository.delete(id: id),
+      createdCategoryId: id,
     );
   }
 

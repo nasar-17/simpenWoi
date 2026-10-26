@@ -16,6 +16,7 @@ class ProposalCard extends StatelessWidget {
     required this.onUndo,
     required this.onSelectCategory,
     this.onEdit,
+    this.onCreateCategory,
   });
 
   final ChatProposal item;
@@ -24,6 +25,7 @@ class ProposalCard extends StatelessWidget {
   final VoidCallback onUndo;
   final ValueChanged<CategoryOption> onSelectCategory;
   final VoidCallback? onEdit;
+  final VoidCallback? onCreateCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -105,11 +107,22 @@ class ProposalCard extends StatelessWidget {
             ],
             if (proposal.suggestedCategoryName != null) ...<Widget>[
               const SizedBox(height: 6),
-              Text(
-                'Saran kategori baru: ${proposal.suggestedCategoryName}',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: scheme.primary),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      'Saran kategori baru: ${proposal.suggestedCategoryName}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: scheme.primary),
+                    ),
+                  ),
+                  if (pending && onCreateCategory != null)
+                    TextButton(
+                      onPressed: onCreateCategory,
+                      child: const Text('Buat kategori'),
+                    ),
+                ],
               ),
             ],
             if (needsCategory) ...<Widget>[
