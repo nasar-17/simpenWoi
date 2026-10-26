@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/assistant/presentation/pages/assistant_input_page.dart';
+import '../features/assistant/presentation/pages/model_ai_debug_page.dart';
 import '../features/capture/presentation/pages/uncategorized_page.dart';
 import '../features/categories/presentation/pages/categories_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/learning/presentation/golden_set_debug_page.dart';
 import '../features/recap/presentation/pages/recap_page.dart';
 import '../features/savings_goals/presentation/pages/savings_goals_page.dart';
+import '../features/settings/presentation/pages/model_ai_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/wallets/presentation/pages/wallets_page.dart';
 import 'app_shell.dart';
@@ -100,6 +102,18 @@ GoRouter createAppRouter() {
         name: 'golden-set-debug',
         builder: (BuildContext context, GoRouterState state) =>
             const GoldenSetDebugPage(),
+      ),
+      GoRoute(
+        path: '/settings/model-ai',
+        name: 'model-ai',
+        builder: (BuildContext context, GoRouterState state) =>
+            const ModelAiPage(),
+      ),
+      GoRoute(
+        path: '/settings/model-ai-debug',
+        name: 'model-ai-debug',
+        builder: (BuildContext context, GoRouterState state) =>
+            const ModelAiDebugPage(),
       ),
     ],
   );

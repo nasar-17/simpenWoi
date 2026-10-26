@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/assistant/assistant_data_repository.dart';
@@ -10,6 +12,8 @@ import '../../../learning/presentation/providers/learning_providers.dart';
 import '../../../targets/presentation/providers/spending_target_providers.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../../../wallets/presentation/providers/wallet_providers.dart';
+import '../../data/function_gemma_model_manager.dart';
+import '../../data/function_gemma_provider.dart';
 import '../../domain/ai_provider.dart';
 import '../../domain/category_scorer.dart';
 import '../../domain/input_engine.dart';
@@ -50,9 +54,21 @@ final Provider<CategoryScorer> categoryScorerProvider =
       ),
     );
 
-final Provider<AiProvider> aiProviderProvider = Provider<AiProvider>(
-  (ref) => const NullAiProvider(),
-);
+final Provider<FunctionGemmaModelManager> functionGemmaModelManagerProvider =
+    Provider<FunctionGemmaModelManager>((ref) {
+      final FunctionGemmaModelManager manager = FunctionGemmaModelManager();
+      ref.onDispose(() {
+        unawaited(manager.dispose());
+      });
+      return manager;
+    });
+
+final Provider<AiProvider> aiProviderProvider = Provider<AiProvider>((ref) {
+  return FunctionGemmaProvider(
+    modelManager: ref.watch(functionGemmaModelManagerProvider),
+    learningRepository: ref.watch(learningRepositoryProvider),
+  );
+});
 
 final Provider<InputEngine> inputEngineProvider = Provider<InputEngine>((ref) {
   return InputEngine(

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/assistant/assistant_context.dart';
+import '../../../core/database/app_database.dart';
 import '../../assistant/domain/category_scorer.dart';
 import '../../assistant/domain/naive_bayes_category_scorer.dart';
 import '../../assistant/presentation/providers/assistant_providers.dart';
-import '../../../core/assistant/assistant_context.dart';
-import '../../../core/database/app_database.dart';
 
 class GoldenSetDebugPage extends ConsumerStatefulWidget {
   const GoldenSetDebugPage({super.key});
