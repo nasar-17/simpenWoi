@@ -56,10 +56,10 @@ class ProposalCard extends StatelessWidget {
                   ),
                 ),
                 if (proposal.source == ActionSource.ai)
-                  const _Badge(label: 'AI'),
+                  const _Badge(label: 'AI lokal'),
                 if (proposal.confidence < 0.75)
                   _Badge(
-                    label: '${(proposal.confidence * 100).round()}%',
+                    label: 'Periksa usulan',
                     muted: true,
                   ),
               ],

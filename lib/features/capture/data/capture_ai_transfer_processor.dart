@@ -36,20 +36,30 @@ class CaptureAiTransferProcessor {
     final Set<String> compared = <String>{};
     int attempts = 0;
     for (final NativeCapture primary in captures) {
-      if (primary.direction != 'raw' || paired.contains(primary.id)) continue;
+      if (primary.direction != 'raw' || paired.contains(primary.id)) {
+        continue;
+      }
       final Wallet? primaryWallet = _knownWallet(primary, wallets);
-      if (primaryWallet == null || !_hasEvidence(primary)) continue;
+      if (primaryWallet == null || !_hasEvidence(primary)) {
+        continue;
+      }
       for (final NativeCapture secondary in candidates.values) {
-        if (attempts >= maxAttempts) return paired;
+        if (attempts >= maxAttempts) {
+          return paired;
+        }
         final Wallet? secondaryWallet = _knownWallet(secondary, wallets);
         if (secondary.id == primary.id || paired.contains(secondary.id) ||
             primary.sourcePackage == secondary.sourcePackage ||
             secondaryWallet == null || secondaryWallet.id == primaryWallet.id ||
             secondary.isTransfer || !_hasEvidence(secondary) ||
             primary.postedAt.difference(secondary.postedAt).abs() >
-                const Duration(minutes: 10)) continue;
+                const Duration(minutes: 10)) {
+          continue;
+        }
         final List<int> ids = <int>[primary.id, secondary.id]..sort();
-        if (!compared.add(ids.join(':'))) continue;
+        if (!compared.add(ids.join(':'))) {
+          continue;
+        }
         attempts++;
         final AssistantContext context = AssistantContext(
           wallets: <Wallet>[primaryWallet, secondaryWallet],
@@ -71,10 +81,14 @@ class CaptureAiTransferProcessor {
           context,
         );
         if (proposals == null || proposals.length != 1 ||
-            proposals.single.source != ActionSource.ai) continue;
+            proposals.single.source != ActionSource.ai) {
+          continue;
+        }
         final AssistantAction action = proposals.single.action;
         if (action is! TransferAction ||
-            validateAssistantAction(action, context) != null) continue;
+            validateAssistantAction(action, context) != null) {
+          continue;
+        }
         final bool primaryOutgoing = action.fromWalletId == primaryWallet.id;
         final String primaryDirection = primaryOutgoing
             ? CaptureDirection.outgoing : CaptureDirection.incoming;
@@ -83,7 +97,9 @@ class CaptureAiTransferProcessor {
         // Resolved historical captures retain their known amount and direction.
         if (secondary.direction != 'raw' &&
             (secondary.amount != action.amount ||
-                secondary.direction != secondaryDirection)) continue;
+                secondary.direction != secondaryDirection)) {
+          continue;
+        }
         final bool confirmed = await bridge.confirmAiTransfer(
           primaryId: primary.id,
           secondaryId: secondary.id,
@@ -108,9 +124,13 @@ class CaptureAiTransferProcessor {
 
   Wallet? _knownWallet(NativeCapture capture, List<Wallet> wallets) {
     final String? name = captureWalletNames[capture.sourcePackage];
-    if (name == null) return null;
+    if (name == null) {
+      return null;
+    }
     for (final Wallet wallet in wallets) {
-      if (wallet.name.trim().toLowerCase() == name.toLowerCase()) return wallet;
+      if (wallet.name.trim().toLowerCase() == name.toLowerCase()) {
+        return wallet;
+      }
     }
     return null;
   }

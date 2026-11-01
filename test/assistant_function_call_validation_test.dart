@@ -18,7 +18,7 @@ void main() {
   });
 
   test('accepts a schema-valid action with an existing category', () {
-    final FunctionCallResponse call = FunctionCallResponse(
+    const FunctionCallResponse call = FunctionCallResponse(
       name: 'add_transaction', args: valid,
     );
     expect(mapper.map(call, testContext())?.action, isA<AddTransactionAction>());

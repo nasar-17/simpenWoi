@@ -34,7 +34,7 @@ class FunctionGemmaModelManager {
   /// A failed task must not poison the queue for later requests.
   Future<T> exclusive<T>(Future<T> Function() operation) {
     final Future<T> result = _tail.then((_) => operation());
-    _tail = result.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    _tail = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
     return result;
   }
 

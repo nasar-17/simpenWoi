@@ -7,8 +7,8 @@ import '../providers/assistant_chat_controller.dart';
 import '../state/assistant_chat_models.dart';
 import '../widgets/assistant_composer.dart';
 import '../widgets/assistant_message_bubble.dart';
-import '../widgets/model_readiness_banner.dart';
 import '../widgets/edit_transaction_sheet.dart';
+import '../widgets/model_readiness_banner.dart';
 
 class AssistantInputPage extends ConsumerStatefulWidget {
   const AssistantInputPage({super.key});

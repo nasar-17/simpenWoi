@@ -98,7 +98,11 @@ com.drena.simpen_woi/
 - Flutter mendengarkan `simpenwoi/capture_events` lalu memanggil
   `CaptureSyncService.sync()` yang sama dengan jalur start/resume. Jangan
   menambah jalur impor terpisah; guard `sync()` mencegah impor bersamaan.
-- Simpan isi notifikasi ke antrean tanpa memerlukan hasil deteksi kata. Model
-  memahami transaksi saat Flutter aktif (start/resume/event); antrean bertahan
-  saat Flutter mati. Jangan mengklaim inferensi background mandiri.
+- Simpan isi notifikasi ke antrean tanpa memerlukan hasil deteksi kata. Layanan
+  Android dapat memulai satu engine Flutter bersama tanpa membuka layar.
+  Pemrosesan background dan UI wajib memakai container, model manager, dan
+  guard sinkronisasi yang sama. Jangan membuat engine inferensi kedua.
+- Android dapat menghentikan proses saat force-stop, Doze, atau kebijakan OEM;
+  antrean tetap persisten dan dicoba lagi saat start/resume. Verifikasi runtime
+  perangkat tetap diperlukan; jangan menjanjikan eksekusi background tanpa batas.
 - Pertahankan nama paket simulator dan nama tabel/kolom antrean.

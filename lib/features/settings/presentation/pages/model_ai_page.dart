@@ -50,9 +50,18 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
     }
     await _run(() async {
       await ref.read(functionGemmaModelManagerProvider).importFromPath(path);
-      if (mounted) unawaited(ref.read(captureRuntimeProvider).sync());
+      if (mounted) {
+        unawaited(ref.read(captureRuntimeProvider).sync());
+      }
       _showMessage('Model AI diimpor dan diaktifkan. Coba Uji AI lokal.');
     }, 'Gagal mengimpor model. Pastikan file .litertlm valid.');
+  }
+
+  Future<void> _openModelDebug() async {
+    await context.push<void>('/settings/model-ai-debug');
+    if (mounted) {
+      setState(_refresh);
+    }
   }
 
   Future<void> _deleteModel() async {
@@ -87,7 +96,9 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
   Future<void> _toggleEnabled(bool enabled) async {
     await _run(() async {
       await ref.read(functionGemmaModelManagerProvider).setEnabled(enabled);
-      if (enabled && mounted) unawaited(ref.read(captureRuntimeProvider).sync());
+      if (enabled && mounted) {
+        unawaited(ref.read(captureRuntimeProvider).sync());
+      }
     }, 'Gagal mengubah status asisten on-device.');
   }
 
@@ -125,7 +136,16 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Model AI')),
+      appBar: AppBar(
+        title: const Text('Model AI'),
+        actions: <Widget>[
+          IconButton(
+            tooltip: 'Segarkan status model',
+            onPressed: _busy ? null : () => setState(_refresh),
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       body: FutureBuilder<FunctionGemmaModelStatus>(
         future: _statusFuture,
         builder:
@@ -160,7 +180,7 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: installed && enabled
-                          ? () => context.push('/settings/model-ai-debug')
+                          ? _openModelDebug
                           : null,
                     ),
                   ),
