@@ -1,20 +1,28 @@
-# Branch feat/ailocalfull
+# feat/ailocalfull
 
-Input teks, pemahaman notifikasi, kategori, dan deteksi transfer menggunakan
-FunctionGemma lokal. Parser kata, lexicon, Naive Bayes, dan pairing nominal
-otomatis dihapus dari jalur aplikasi. Formulir eksplisit tetap tersedia.
+Perubahan telah didorong ke branch baru, berdasarkan feat/ai-assistant.
 
-Model .litertlm diimpor melalui penyimpanan Android; pemuatan native divalidasi
-sebelum diaktifkan. Lifecycle model diserialkan dan dilepas setelah idle3menit.
-Engine yang sama melayani notifikasi background dan UI. Antrean lokal tetap
-menjadi sumber pemulihan jika Android menghentikan proses.
+- Input teks, notifikasi, saran kategori, dan deteksi transfer memakai
+  FunctionGemma lokal; kamus prediksi, parser kalimat, dan Naive Bayes dihapus.
+- Satu engine melayani UI dan notifikasi background; antrean SQLite menjadi
+  sumber pemulihan. Formulir transaksi eksplisit tetap tersedia tanpa model.
+- Lifecycle model diserialkan, impor divalidasi dan dapat dipulihkan jika gagal,
+  aktivasi private FileSource diperbaiki saat cold start, dan jumlah/durasi
+  inferensi ditampilkan tanpa menyimpan isi input ke log.
+- Kanal notifikasi bersuara memakai chime asli simpenWoi dan ikon putih Android.
+- Logo sumber tidak ditemukan di root empat branch yang tersedia. Ikon launcher
+  asli dipertahankan; alat pemasangan logo adaptive disediakan.
 
-Kanal baru memakai chime asli simpenWoi dan ikon notifikasi putih. Logo sumber
-belum ditemukan di root empat branch yang tersedia; launcher asli dipertahankan.
+## Bukti pengujian
 
-Validasi CI pada commit88e0b4b:54tes lulus, analyzer tanpa isu. Build APK dan
-uji emulator masih dipantau setelah perbaikan aktivasi model saat cold start.
-Lihat docs/BUILD_TEST_REPORT.md untuk bukti dan batas pengujian.
+Commit kode3a07c9d: **54tes lulus, analyzer tanpa isu, APK ARM64 berhasil**.
+APK debug juga lulus startup serta pemulihan antrean pada emulator Android35:
+notifikasi mentah bertahan setelah force-stop dan tidak membuat transaksi tanpa model.
 
-Bobot FunctionGemma tidak tersedia dalam repo. Inferensi nyata dan kualitas
-kategori dengan bobot asli serta suara pada perangkat belum diklaim teruji.
+[Unduh APK](https://github.com/nasar-17/simpenWoi/actions/runs/41362256200/artifacts/13105797516)
+— [CI](https://github.com/nasar-17/simpenWoi/actions/runs/41362256200)
+— [Laporan lengkap](docs/BUILD_TEST_REPORT.md).
+
+APK pengujian memakai kunci debug runner. File model .litertlm harus diimpor
+secara terpisah. Inferensi bobot asli dan suara pada speaker perangkat belum
+diverifikasi; hasil emulator tidak mengklaim kualitas kategori model.

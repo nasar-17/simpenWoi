@@ -14,7 +14,8 @@ Jalankan `python3 tool/generate_notification_chime.py` untuk menghasilkan kembal
 WAV mono PCM16 24 kHz yang identik. URI memakai nama resource agar stabil ketika
 ID resource berubah pada build berikutnya.
 
-Notifikasi anak berbunyi sekali saat pertama muncul. Pembaruan pada ID yang sama
+Notifikasi antrean mentah dibuat senyap selama menunggu AI. Setelah transaksi
+tervalidasi dan commit database selesai, notifikasi tersimpan berbunyi sekali. Pembaruan pada ID yang sama
 memakai `setOnlyAlertOnce(true)`; ringkasan grup dibuat senyap agar tidak berbunyi
 dua kali. `ic_notification_simpenwoi.xml` adalah mask putih berbentuk dompet,
 sesuai format small icon Android, terpisah dari logo launcher berwarna.
@@ -36,7 +37,8 @@ artwork di dalam safe zone 66/108 dp. Berkas sumber logo tidak diubah.
 
 ## Pemeriksaan perangkat
 
-1. Izinkan notifikasi di Android 13+, lalu kirim dua notifikasi simulasi terpisah.
+1. Impor dan aktifkan model kompatibel, izinkan notifikasi di Android13+,
+   lalu kirim dua notifikasi simulasi terpisah.
 2. Pastikan masing-masing berbunyi satu kali dan membuka simpenWoi saat diketuk.
 3. Pastikan perubahan kategori pada ID yang sama tidak membunyikan ulang suara.
 4. Pastikan ringkasan grup tidak menghasilkan bunyi tambahan.

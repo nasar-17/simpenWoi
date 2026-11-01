@@ -1,5 +1,38 @@
 # Validasi branch feat/ailocalfull
 
+## Hasil final GitHub Actions
+
+Commit kode yang diuji: `3a07c9dab84c89d2e8761eb028255efca5ac11c6`.
+[Run41362256200](https://github.com/nasar-17/simpenWoi/actions/runs/41362256200)
+selesai dengan status **success** pada1November2026.
+
+- Flutter3.47.9 / Dart3.13.7; dependency lockfile berhasil diverifikasi.
+- Analyzer: **No issues found**.
+- **54tes Flutter lulus**: routing model, skema function call, kategori, serialisasi
+  lifecycle, transfer, runtime background, dan impor stream.
+- Build APK release ARM64 berhasil (135MB), beserta APK debug x86_64.
+- Emulator Android35 berhasil membuka APK debug, menyimpan satu notifikasi
+  simulasi mentah tanpa model, tidak membuat transaksi keuangan, dan mempertahankan
+  capture yang sama tanpa duplikasi setelah force-stop dan pembukaan ulang.
+
+[Unduh APK pengujian ARM64](https://github.com/nasar-17/simpenWoi/actions/runs/41362256200/artifacts/13105797516)
+(artifact ZIP53.5MB, berlaku sampai15November2026).
+[Diagnostik emulator](https://github.com/nasar-17/simpenWoi/actions/runs/41362256200/artifacts/13106380157)
+memuat screenshot, log, dan hasil pemulihan SQLite.
+Digest ZIP APK: `sha256:75ebf8d59419ad19cd4d585cfe54c60bcd2209e3105ffe2134c15120836aa9ab`.
+
+Build memperbaiki ketidakcocokan API pemilih file lama dengan Flutter modern
+melalui file_picker13.3.1, serta memakai compileSdk37 sesuai persyaratan
+permission_handler_android. Impor model membaca stream dari penyedia file
+Android; ekspor JSONL menulis bytes melalui dialog simpan Android.
+
+**Batas verifikasi:** bobot FunctionGemma tidak tersedia, sehingga kualitas
+klasifikasi dan inferensi nyata dengan bobot asli, termasuk cold-start model,
+belum diuji di perangkat. Emulator menguji kondisi tanpa model. Chime telah
+lulus validasi PCM/XML; suara speaker, heads-up, DND, dan notifikasi bank nyata
+memerlukan perangkat. Audit permission manifest APK hasil merge belum dijalankan.
+
+
 ## Hasil yang benar-benar dijalankan di workspace
 
 - `python3 tools/check_local_assets.py`: lulus. Seluruh XML resource dan manifest
@@ -70,6 +103,13 @@ This fix was checked against exact upstream source at release commit
   Android `getTargetPath()` resolves the Documents directory.
 - `packages/flutter_gemma/lib/core/handlers/file_source_handler.dart`:
   FileSource installation registers the existing file and external path without copying.
+
+The status gate is also compatible with this repair: the SDK facade's
+`isModelInstalled(filename)` checks `SharedPreferencesModelRepository.isInstalled`,
+which uses `prefs.containsKey` for the full filename rather than looking in the
+Documents directory. simpenWoi separately checks that its owned file exists.
+After re-registration, `getModelFilePaths` reads the active `FileSource.path`
+directly, so native loading uses the app-owned file.
 
 A real cold-start inference still requires importing compatible FunctionGemma
 weights on an Android device; static source verification and mocked routing tests
