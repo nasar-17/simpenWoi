@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -51,30 +51,25 @@ class _LearningSettingsSectionState
 
   Future<void> _exportLearningLog() async {
     try {
-      final String? outputPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Export log pembelajaran',
-        fileName: 'learning_log_export.jsonl',
-        type: FileType.custom,
-        allowedExtensions: <String>['jsonl'],
-      );
-      if (outputPath == null) {
-        return;
-      }
       final List<LearningLogEntry> entries =
           await ref.read(learningRepositoryProvider).allEntries();
-      final IOSink sink = File(outputPath).openWrite();
+      final StringBuffer buffer = StringBuffer();
       for (final LearningLogEntry entry in entries) {
-        sink.writeln(
-          jsonEncode(<String, dynamic>{
-            'id': entry.id,
-            'input_text': entry.inputText,
-            'action_json': entry.actionJson,
-            'outcome': entry.outcome,
-            'created_at': entry.createdAt.toIso8601String(),
-          }),
-        );
+        buffer.writeln(jsonEncode(<String, Object?>{
+          'id': entry.id,
+          'input_text': entry.inputText,
+          'action_json': entry.actionJson,
+          'outcome': entry.outcome,
+          'created_at': entry.createdAt.toIso8601String(),
+        }));
       }
-      await sink.close();
+      final Uri? output = await FilePicker.saveFile(
+        dialogTitle: 'Ekspor log pembelajaran',
+        fileName: 'learning_log_export.jsonl',
+        mimeType: 'application/x-ndjson',
+        bytes: Uint8List.fromList(utf8.encode(buffer.toString())),
+      );
+      if (output == null) return;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Log pembelajaran berhasil diekspor.')),

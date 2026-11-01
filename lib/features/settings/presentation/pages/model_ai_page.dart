@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/capture_runtime.dart';
 import '../../../assistant/data/function_gemma_model_manager.dart';
 import '../../../assistant/data/function_gemma_model_status.dart';
+import '../../../assistant/data/model_stream_importer.dart';
 import '../../../assistant/presentation/providers/assistant_providers.dart';
 import '../widgets/model_ai_status_card.dart';
 
@@ -33,9 +34,9 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
   }
 
   Future<void> _importModel() async {
-    FilePickerResult? result;
+    PlatformFile? result;
     try {
-      result = await FilePicker.platform.pickFiles(
+      result = await FilePicker.pickFile(
         dialogTitle: 'Pilih model FunctionGemma',
         type: FileType.custom,
         allowedExtensions: <String>['litertlm'],
@@ -44,12 +45,15 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
       _showMessage('Gagal membuka pemilih file.');
       return;
     }
-    final String? path = result?.files.single.path;
-    if (path == null || !mounted) {
+    if (result == null || !mounted) {
       return;
     }
+    final PlatformFile picked = result;
     await _run(() async {
-      await ref.read(functionGemmaModelManagerProvider).importFromPath(path);
+      await importModelStream(
+        name: picked.name, bytes: picked.readAsByteStream(),
+        install: ref.read(functionGemmaModelManagerProvider).importFromPath,
+      );
       if (mounted) {
         unawaited(ref.read(captureRuntimeProvider).sync());
       }
