@@ -3,6 +3,8 @@ name: Android validation and APK
 on:
   push:
     branches: [feat/ailocalfull]
+    paths-ignore:
+      - "**/*.md"
   pull_request:
   workflow_dispatch:
 
@@ -22,17 +24,16 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: "3.47.9"
           cache: true
       - name: Record SDK versions
         run: flutter --version
       - name: Check Android assets
         run: python3 tools/check_local_assets.py
       - name: Resolve dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
       - name: Format Dart
         run: dart format lib test
-      - name: Record resolved lockfile
-        run: python3 -c "import pathlib,base64; print('RESOLVED_LOCKFILE=' + base64.b64encode(pathlib.Path('pubspec.lock').read_bytes()).decode())"
       - name: Analyze Dart
         run: flutter analyze --no-fatal-infos
       - name: Run tests
@@ -62,9 +63,10 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: "3.47.9"
           cache: true
       - name: Resolve dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
       - name: Build ARM64 release APK
         run: flutter build apk --release --target-platform android-arm64
       - name: Upload installable test APK

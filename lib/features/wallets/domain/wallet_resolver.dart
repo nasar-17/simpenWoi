@@ -20,6 +20,10 @@ Wallet resolveWallet(List<Wallet> wallets, {int? preferredId}) {
 
 /// Memilih dompet dari nama paket sumber notifikasi.
 Wallet resolveWalletForPackage(List<Wallet> wallets, String sourcePackage) {
+  // Synthetic debug capture intentionally uses the selected default wallet.
+  if (sourcePackage == 'com.drena.simpen_woi.simulator') {
+    return resolveWallet(wallets);
+  }
   final String? targetName = captureWalletNames[sourcePackage];
   if (targetName != null) {
     final String normalizedTarget = targetName.trim().toLowerCase();

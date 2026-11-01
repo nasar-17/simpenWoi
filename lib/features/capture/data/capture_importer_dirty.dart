@@ -40,7 +40,7 @@ extension CaptureDirtySync on CaptureImporter {
           excludeFromTarget: record.excludeFromTarget,
         );
         rulesChanged = rulesChanged || ruleChanged;
-        if (categoryId != null) {
+        if (categoryId != null && dirty.categoryId != null) {
           await learningRecorder.record(
             inputText: note ?? record.note ?? record.merchant ?? '',
             merchant: record.merchant,
