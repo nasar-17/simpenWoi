@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
 import com.drena.simpen_woi.bridge.CaptureEventChannel
+import com.drena.simpen_woi.bridge.CaptureEngineHost
 import com.drena.simpen_woi.capture.queue.CaptureExecutor
 import com.drena.simpen_woi.capture.queue.CaptureQueue
 import com.drena.simpen_woi.capture.queue.CaptureTransferStore
@@ -29,6 +30,7 @@ class CaptureActionReceiver : BroadcastReceiver() {
             -1L,
         )
         if (captureId <= 0L) return
+        CaptureEngineHost.ensureRunning(context)
         val queue = CaptureQueue.getInstance(context)
         val capture = queue.getById(captureId) ?: return
 
@@ -102,3 +104,4 @@ class CaptureActionReceiver : BroadcastReceiver() {
         CaptureEventChannel.emitQueueChanged()
     }
 }
+

@@ -39,6 +39,23 @@ void main() {
     expect(result.destination.id, 3);
   });
 
+  test('confirmed wallet IDs survive wallet renames', () {
+    final NativeCapture original = capture();
+    final NativeCapture confirmed = NativeCapture(
+      id: original.id, amount: original.amount, merchant: null,
+      sourcePackage: original.sourcePackage, postedAt: original.postedAt,
+      direction: original.direction, categoryId: null, note: null,
+      isTransfer: true, transferSourcePackage: 'wallet:2',
+      transferDestinationPackage: 'wallet:3',
+    );
+    final ({Wallet source, Wallet destination}) result =
+        resolveCapturedTransferWallets(confirmed, <Wallet>[
+          wallet(2, 'Rekening belanja'), wallet(3, 'Tabungan'),
+        ]);
+    expect(result.source.id, 2);
+    expect(result.destination.id, 3);
+  });
+
   test('missing destination never falls back to unrelated wallet', () {
     expect(
       () => resolveCapturedTransferWallets(capture(), <Wallet>[

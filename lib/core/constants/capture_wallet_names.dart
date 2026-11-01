@@ -1,6 +1,7 @@
 /// Nama dompet default untuk package notifikasi yang dipantau.
 const Map<String, String> captureWalletNames = <String, String>{
   'com.gojek.app': 'GoPay',
+  'com.gojek.gopay': 'GoPay',
   'ovo.id': 'OVO',
   'id.dana': 'DANA',
   'com.shopee.id': 'ShopeePay',
@@ -10,3 +11,4 @@ const Map<String, String> captureWalletNames = <String, String>{
   'id.co.bri.brimo': 'BRImo',
   'id.co.bankbkemobile.digitalbank': 'SeaBank',
 };
+

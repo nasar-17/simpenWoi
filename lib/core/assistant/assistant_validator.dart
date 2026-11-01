@@ -91,7 +91,7 @@ String? _validateTarget(SetSpendingTargetAction action) {
   if (action.amount <= 0) {
     return 'Target pengeluaran harus lebih dari 0.';
   }
-  if (!RegExp(r'^\d{4}-\d{2}$').hasMatch(action.month)) {
+  if (!RegExp(r'^[1-9]\d{3}-(0[1-9]|1[0-2])$').hasMatch(action.month)) {
     return 'Bulan target tidak valid.';
   }
   return null;

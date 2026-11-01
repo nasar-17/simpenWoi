@@ -3,6 +3,7 @@ package com.drena.simpen_woi.capture.parser
 object SupportedApps {
     val packages: Set<String> = setOf(
         "com.gojek.app",
+        "com.gojek.gopay",
         "ovo.id",
         "id.dana",
         "com.shopee.id",
@@ -15,6 +16,7 @@ object SupportedApps {
 
     private val names: Map<String, String> = mapOf(
         "com.gojek.app" to "GoPay",
+        "com.gojek.gopay" to "GoPay",
         "ovo.id" to "OVO",
         "id.dana" to "DANA",
         "com.shopee.id" to "ShopeePay",
@@ -34,3 +36,4 @@ object SupportedApps {
         return names[packageName] ?: packageName.substringAfterLast('.')
     }
 }
+

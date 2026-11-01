@@ -11,6 +11,13 @@ import 'native_capture_models.dart';
   List<Wallet> wallets,
 ) {
   Wallet? findWallet(String? package) {
+    if (package != null && package.startsWith('wallet:')) {
+      final int? id = int.tryParse(package.substring('wallet:'.length));
+      for (final Wallet wallet in wallets) {
+        if (wallet.id == id) return wallet;
+      }
+      return null;
+    }
     final String? name = captureWalletNames[package];
     if (name == null) return null;
     for (final Wallet wallet in wallets) {

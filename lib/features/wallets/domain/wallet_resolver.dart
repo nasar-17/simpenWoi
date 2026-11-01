@@ -29,7 +29,10 @@ Wallet resolveWalletForPackage(List<Wallet> wallets, String sourcePackage) {
       }
     }
   }
-  return resolveWallet(wallets);
+  throw StateError(
+    'Dompet ${targetName ?? "sumber notifikasi"} belum tersedia. '
+    'Buat dompet yang sesuai di Pengaturan > Kelola dompet.',
+  );
 }
 
 Wallet? resolveTransferWallet(
@@ -59,3 +62,4 @@ int totalWalletBalance(Iterable<Wallet> wallets) {
   }
   return total;
 }
+

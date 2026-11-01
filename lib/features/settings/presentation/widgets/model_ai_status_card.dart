@@ -52,6 +52,21 @@ class ModelAiStatusCard extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            Text(
+              'Inferensi selesai pada sesi aplikasi ini: '
+              '${status?.completedInferences ?? 0}',
+            ),
+            if (status?.lastInferenceDuration != null)
+              Text(
+                'Durasi proses AI terakhir: '
+                '${(status!.lastInferenceDuration!.inMilliseconds / 1000).toStringAsFixed(1)} detik',
+              ),
+            const Text(
+              'Penghitung bertambah setelah model selesai memproses input; '
+              'hasilnya tetap perlu diperiksa. Penghitung kembali nol saat '
+              'proses aplikasi dimulai ulang.',
+            ),
             if (busy) ...<Widget>[
               const SizedBox(height: 16),
               const LinearProgressIndicator(),

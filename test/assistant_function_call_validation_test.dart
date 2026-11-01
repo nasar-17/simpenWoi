@@ -1,6 +1,7 @@
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:simpen_woi/core/assistant/assistant_action.dart';
+import 'package:simpen_woi/core/assistant/assistant_validator.dart';
 import 'package:simpen_woi/features/assistant/data/function_gemma_action_mapper.dart';
 import 'package:simpen_woi/features/assistant/data/function_gemma_model_storage.dart';
 
@@ -43,6 +44,17 @@ void main() {
     expect(mapper.map(const FunctionCallResponse(
       name: 'set_wallet_balance', args: <String, dynamic>{'wallet_id': 1},
     ), testContext()), isNull);
+  });
+
+  test('invalid target months cannot pass action or model validation', () {
+    for (final String month in <String>['2026-00', '2026-13', '2026-99', '0000-01']) {
+      expect(validateAssistantAction(SetSpendingTargetAction(month: month, amount: 100),
+          testContext()), isNotNull);
+      expect(mapper.map(FunctionCallResponse(name: 'set_spending_target',
+          args: <String, dynamic>{'month': month, 'amount': 100}), testContext()), isNull);
+    }
+    expect(validateAssistantAction(const SetSpendingTargetAction(month: '2026-12', amount: 100),
+        testContext()), isNull);
   });
 
   test('unknown period cannot silently become monthly', () {

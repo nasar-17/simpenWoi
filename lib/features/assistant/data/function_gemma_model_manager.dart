@@ -25,6 +25,8 @@ class FunctionGemmaModelManager {
   bool _installed = false;
   bool _enabled = false;
   bool _disposed = false;
+  int _completedInferences = 0;
+  Duration? _lastInferenceDuration;
 
   bool get isInstalled => _installed;
   bool get isEnabled => _enabled;
@@ -47,7 +49,11 @@ class FunctionGemmaModelManager {
       _idleTimer?.cancel();
       try {
         final InferenceModel model = _model ??= await _loadModel();
-        return await operation(model);
+        final Stopwatch stopwatch = Stopwatch()..start();
+        final T result = await operation(model);
+        _completedInferences++;
+        _lastInferenceDuration = stopwatch.elapsed;
+        return result;
       } catch (_) {
         // A failed native chat must not be reused by the next request.
         await _unload();
@@ -92,6 +98,8 @@ class FunctionGemmaModelManager {
         enabled: _enabled,
         loaded: _model != null,
         sizeBytes: fileExists ? await file.length() : 0,
+        completedInferences: _completedInferences,
+        lastInferenceDuration: _lastInferenceDuration,
       );
     } catch (_) {
       _installed = false;
@@ -102,6 +110,8 @@ class FunctionGemmaModelManager {
         loaded: _model != null,
         sizeBytes: 0,
         error: 'Model AI belum dapat diperiksa. Coba impor ulang model.',
+        completedInferences: _completedInferences,
+        lastInferenceDuration: _lastInferenceDuration,
       );
     }
   }

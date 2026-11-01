@@ -75,9 +75,11 @@ class CaptureQueue private constructor(context: Context) {
 
     fun markImported(ids: List<Long>) {
         if (ids.isEmpty()) return
-        val placeholders = ids.joinToString(",") { "?" }
+        val groupIds = ids.map { getById(it)?.pairId ?: it }.distinct()
+        val allIds = (ids + groupIds).distinct()
+        val placeholders = allIds.joinToString(",") { "?" }
         val values = ContentValues().apply { put("status", CaptureQueueSchema.STATUS_IMPORTED) }
-        val args = ids.map { it.toString() }.toTypedArray()
+        val args = allIds.map { it.toString() }.toTypedArray()
         database.writableDatabase.update(
             CaptureQueueSchema.TABLE,
             values,

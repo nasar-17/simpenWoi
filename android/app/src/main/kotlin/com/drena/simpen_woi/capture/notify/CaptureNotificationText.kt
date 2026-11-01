@@ -54,6 +54,9 @@ internal object CaptureNotificationText {
     }
 
     fun transferSavedTitle(capture: PendingCapture): String {
+        if (capture.transferSourcePackage?.startsWith("wallet:") == true) {
+            return "Transfer ${formatRupiah(capture.amount)} antar dompet tersimpan"
+        }
         val source = SupportedApps.displayName(capture.transferSourcePackage)
         val destination = SupportedApps.displayName(capture.transferDestinationPackage)
         return "Transfer ${formatRupiah(capture.amount)}: $source \u2192 $destination tersimpan"
@@ -71,3 +74,4 @@ internal object CaptureNotificationText {
         return "Rp$builder"
     }
 }
+

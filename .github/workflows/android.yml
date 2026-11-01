@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: android-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   checks:
@@ -31,6 +31,8 @@ jobs:
         run: flutter pub get
       - name: Format Dart
         run: dart format lib test
+      - name: Record resolved lockfile
+        run: python3 -c "import pathlib,base64; print('RESOLVED_LOCKFILE=' + base64.b64encode(pathlib.Path('pubspec.lock').read_bytes()).decode())"
       - name: Analyze Dart
         run: flutter analyze --no-fatal-infos
       - name: Run tests

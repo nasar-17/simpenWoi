@@ -86,15 +86,19 @@ FunctionGemma memahami nominal, arah transaksi, merchant, dan kategorinya dari
 isi notifikasi. Tidak ada kamus kata atau aturan merchant sebagai pengganti
 inferensi model. Notifikasi yang belum dapat dipahami tetap menunggu pemrosesan.
 
-Inferensi berjalan saat Flutter aktif: saat aplikasi dibuka, kembali aktif,
-atau menerima event capture. Saat proses Flutter tidak hidup, layanan Android
-masih dapat menyimpan notifikasi; pemahaman AI dilanjutkan ketika aplikasi
-kembali dibuka. Ini belum merupakan inferensi model mandiri di background.
+Layanan notifikasi dapat memulai engine Flutter yang sama tanpa membuka layar.
+Engine itu juga dipakai saat aplikasi dibuka: hanya ada satu pemilik database,
+sinkronisasi, dan model. Android tetap dapat menunda atau menghentikan proses
+karena force-stop, Doze, atau kebijakan baterai vendor; antrean lokal menjadi
+sumber pemulihan setelah proses aktif lagi.
 
-Notifikasi keluar dan masuk dengan nominal sama dari aplikasi berbeda dalam
-10 menit dipasangkan menjadi satu transfer. simpenWoi menampilkan notifikasi
-`Transfer Rp10.000: DANA → SeaBank tersimpan` dengan aksi **Bukan transfer**
-untuk membatalkan pasangan tersebut.
+Dua notifikasi dari dompet berbeda dapat dipahami bersama oleh model sebagai
+transfer internal. Nominal/waktu saja tidak cukup untuk memasangkan transaksi:
+model harus mengembalikan transfer yang valid untuk kedua dompet tersebut.
+Pemeriksaan pasangan dibatasi untuk menjaga beban inferensi. Pasangan yang
+belum jelas tetap dapat dikoreksi secara manual, termasuk aksi **Bukan transfer**.
+Buat dompet bernama sesuai bank/e-wallet (misalnya DANA dan SeaBank) sebelum
+capture diandalkan; dompet sumber yang tidak tersedia tidak diganti dengan Tunai.
 
 Daftar paket yang dipantau saat ini: GoPay/Gojek, OVO, DANA, ShopeePay,
 LinkAja, BCA mobile, Livin' by Mandiri, BRImo, dan SeaBank. Nama paket dapat berubah

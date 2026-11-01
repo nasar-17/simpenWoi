@@ -68,7 +68,7 @@ class CaptureAiProcessor {
             ? CaptureDirection.incoming : CaptureDirection.outgoing,
         categoryId: action.categoryId,
         merchant: action.merchant,
-        note: action.note ?? raw,
+        note: raw,
       );
     }
   }

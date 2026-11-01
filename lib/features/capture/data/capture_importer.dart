@@ -8,10 +8,13 @@ import '../domain/capture_category_resolver.dart';
 import '../domain/capture_direction.dart';
 import 'capture_context_pusher.dart';
 import 'capture_ai_processor.dart';
+import 'capture_ai_transfer_processor.dart';
 import 'capture_learning_recorder.dart';
 import 'capture_transfer_importer.dart';
 import 'native_capture_bridge.dart';
 import 'native_capture_models.dart';
+
+part 'capture_importer_dirty.dart';
 
 /// Mengimpor capture pending dan menyinkronkan perubahan kategori terlambat.
 class CaptureImporter {
@@ -24,6 +27,7 @@ class CaptureImporter {
     required this.learningRecorder,
     required this.transferImporter,
     required this.aiProcessor,
+    required this.transferProcessor,
   });
 
   final NativeCaptureBridge bridge;
@@ -34,6 +38,7 @@ class CaptureImporter {
   final CaptureLearningRecorder learningRecorder;
   final CaptureTransferImporter transferImporter;
   final CaptureAiProcessor aiProcessor;
+  final CaptureAiTransferProcessor transferProcessor;
 
   Future<void> importPending() async {
     final List<NativeCapture> captures = await bridge.getPendingCaptures();
@@ -48,8 +53,12 @@ class CaptureImporter {
     final List<Category> categories = await transactionRepository
         .getCategories();
 
-    await aiProcessor.resolvePending(
+    await transferProcessor.resolvePending(
       captures: captures, wallets: wallets, categories: categories,
+    );
+    await aiProcessor.resolvePending(
+      captures: await bridge.getPendingCaptures(),
+      wallets: wallets, categories: categories,
     );
     bool rulesChanged = false;
     // Re-read because AI resolution may have changed queue status or fields.
@@ -125,60 +134,4 @@ class CaptureImporter {
     );
   }
 
-  Future<void> syncDirtyCaptures() async {
-    final List<DirtyNativeCapture> dirtyCaptures = await bridge
-        .getDirtyCaptures();
-    if (dirtyCaptures.isEmpty) {
-      return;
-    }
-
-    final List<Category> categories = await transactionRepository
-        .getCategories();
-    bool rulesChanged = false;
-
-    for (final DirtyNativeCapture dirty in dirtyCaptures) {
-      final TransactionRecord? record = await transactionRepository
-          .getByNativeCaptureId(dirty.id);
-      if (record == null) {
-        await bridge.markSynced(<int>[dirty.id]);
-        continue;
-      }
-
-      final int? categoryId = await resolveDirtyCaptureCategory(
-        dirty,
-        record,
-        categories,
-        classifier,
-      );
-      final String? note = dirty.note;
-      if (categoryId != record.categoryId || note != record.note) {
-        final bool ruleChanged = await transactionRepository.updateTransaction(
-          id: record.id,
-          amount: record.amount,
-          type: record.type,
-          walletId: record.walletId,
-          counterpartWalletId: record.counterpartWalletId,
-          categoryId: categoryId,
-          note: note,
-          merchant: record.merchant,
-          excludeFromTarget: record.excludeFromTarget,
-        );
-        rulesChanged = rulesChanged || ruleChanged;
-        if (categoryId != null) {
-          await learningRecorder.record(
-            inputText: note ?? record.note ?? record.merchant ?? '',
-            merchant: record.merchant,
-            oldCategoryId: record.categoryId,
-            newCategoryId: categoryId,
-          );
-        }
-      }
-
-      await bridge.markSynced(<int>[dirty.id]);
-    }
-
-    if (rulesChanged) {
-      await contextPusher.pushLocalContext();
-    }
-  }
 }

@@ -27,6 +27,34 @@ class NativeCaptureBridge {
         .toList(growable: false);
   }
 
+  Future<List<NativeCapture>> getRecentCaptures() async {
+    final List<Object?>? raw = await _channel.invokeMethod<List<Object?>>(
+      'getRecentAiCaptures',
+    );
+    return (raw ?? <Object?>[])
+        .whereType<Map<Object?, Object?>>()
+        .map(NativeCapture.fromMap)
+        .toList(growable: false);
+  }
+
+  Future<bool> confirmAiTransfer({
+    required int primaryId,
+    required int secondaryId,
+    required int amount,
+    required int fromWalletId,
+    required int toWalletId,
+    required String primaryDirection,
+    required String secondaryDirection,
+  }) async => await _channel.invokeMethod<bool>(
+    'confirmAiTransfer',
+    <String, Object?>{
+      'primary_id': primaryId, 'secondary_id': secondaryId, 'amount': amount,
+      'from_wallet_id': fromWalletId, 'to_wallet_id': toWalletId,
+      'primary_direction': primaryDirection,
+      'secondary_direction': secondaryDirection,
+    },
+  ) ?? false;
+
   Future<void> resolveAiCapture({
     required int id,
     required int amount,

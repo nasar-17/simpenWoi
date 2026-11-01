@@ -64,8 +64,8 @@ class CaptureRuntime {
     } catch (_) {
       if (!_disposed) {
         reportError(
-          'Pemrosesan notifikasi belum selesai. Periksa Model AI lalu coba '
-          'lagi. Notifikasi yang belum diproses tetap ada di antrean lokal.',
+          'Pemrosesan notifikasi belum selesai. Periksa Model AI dan pastikan '
+          'dompet bank/e-wallet tersedia, lalu coba lagi. Antrean lokal tetap tersimpan.',
         );
       }
     }

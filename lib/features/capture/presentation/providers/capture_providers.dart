@@ -9,6 +9,7 @@ import '../../../transactions/presentation/providers/transaction_providers.dart'
 import '../../../wallets/presentation/providers/wallet_providers.dart';
 import '../../data/capture_context_pusher.dart';
 import '../../data/capture_ai_processor.dart';
+import '../../data/capture_ai_transfer_processor.dart';
 import '../../data/capture_importer.dart';
 import '../../data/capture_learning_recorder.dart';
 import '../../data/capture_sync_service.dart';
@@ -56,6 +57,10 @@ final Provider<CaptureSyncService> captureSyncServiceProvider =
         walletRepository: ref.watch(walletRepositoryProvider),
         contextPusher: contextPusher,
         classifier: ref.watch(captureCategoryClassifierProvider),
+        transferProcessor: CaptureAiTransferProcessor(
+          ai: ref.watch(aiProviderProvider),
+          bridge: ref.watch(nativeCaptureBridgeProvider),
+        ),
         aiProcessor: CaptureAiProcessor(
           ai: ref.watch(aiProviderProvider),
           bridge: ref.watch(nativeCaptureBridgeProvider),
