@@ -48,13 +48,11 @@ class CaptureChannelHandler(private val activity: Context) {
                         CaptureQueue.getInstance(activity).getPending().map { it.toMap() }
                     }
                 }
-
                 "getDirtyCaptures" -> {
                     runAsync(result) {
                         CaptureQueue.getInstance(activity).getDirtyCaptures().map { it.toMap() }
                     }
                 }
-
                 "markSynced" -> {
                     val ids = call.longListArgument("ids")
                     runAsync(result) {
@@ -62,7 +60,6 @@ class CaptureChannelHandler(private val activity: Context) {
                         null
                     }
                 }
-
                 "syncCapture" -> {
                     val id = call.longListArgument("ids").firstOrNull() ?: 0L
                     val categoryId = call.argument<Number>("category_id")?.toInt()
@@ -77,7 +74,6 @@ class CaptureChannelHandler(private val activity: Context) {
                         }
                     }
                 }
-
                 "markImported" -> {
                     val ids = call.longListArgument("ids")
                     runAsync(result) {
@@ -85,7 +81,6 @@ class CaptureChannelHandler(private val activity: Context) {
                         null
                     }
                 }
-
                 "pushCategories" -> {
                     val categories = call.argument<List<*>>("categories")
                     val topCategories = call.argument<List<*>>("top_categories")
@@ -102,7 +97,6 @@ class CaptureChannelHandler(private val activity: Context) {
                         null
                     }
                 }
-
                 "pushMerchantRules" -> {
                     val rules = call.argument<List<*>>("rules")
                     runAsync(result) {
@@ -110,18 +104,15 @@ class CaptureChannelHandler(private val activity: Context) {
                         null
                     }
                 }
-
                 "openListenerSettings" -> {
                     val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     activity.startActivity(intent)
                     result.success(null)
                 }
-
                 "isListenerEnabled" -> {
                     result.success(isNotificationListenerEnabled())
                 }
-
                 "simulateCapture" -> {
                     val amount = call.argument<Number>("amount")?.toLong() ?: 25000L
                     val merchant = call.argument<String>("merchant") ?: "Warung Bu Tini"
@@ -130,20 +121,17 @@ class CaptureChannelHandler(private val activity: Context) {
                         null
                     }
                 }
-
                 "getInspectorLog" -> {
                     runAsync(result) {
                         CaptureInspector.getLog(activity).map { it.toInspectorMap() }
                     }
                 }
-
                 "clearInspectorLog" -> {
                     runAsync(result) {
                         CaptureInspector.clear(activity)
                         null
                     }
                 }
-
                 "setInspectorEnabled" -> {
                     val enabled = call.argument<Boolean>("enabled") ?: false
                     if (enabled && !isDebuggable()) {
@@ -159,7 +147,6 @@ class CaptureChannelHandler(private val activity: Context) {
                         null
                     }
                 }
-
                 "getListenerStatus" -> {
                     runAsync(result) {
                         CaptureInspector.getListenerStatus(activity).toListenerStatusMap()

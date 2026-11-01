@@ -120,7 +120,12 @@ class FunctionGemmaModelManager {
     await status();
   }
 
-  Future<InferenceModel> _loadModel() {
+  Future<InferenceModel> _loadModel() async {
+    // SDK 1.11.3 restores only its Documents path on cold start, while this
+    // app owns the model in ApplicationSupport/ai_models. Re-registering a
+    // FileSource is idempotent and restores the active identity without copying
+    // weights or running inference. Do this before every new native load.
+    await _register(await _storage.targetFile());
     return FlutterGemma.getActiveModel(
       maxTokens: contextTokens,
       preferredBackend: PreferredBackend.cpu,

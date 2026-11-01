@@ -1,10 +1,20 @@
-## Status
-- Tahap 1-8 selesai di branch feat/ai-assistant; checkpoint Tahap 1 965ac43, Tahap 2 13a97b8.
-- Tahap 2: FunctionGemma 270M opsional on-device, default nonaktif, impor/hapus/status, CPU 1024 token, timeout 25 dtk, unload 3 mnt.
-- Tahap 3: README, docs/CONVENTIONS.md, dan ml/README.md diperbarui.
-## Verifikasi
-- flutter analyze Tahap 2: 5 isu ditemukan lalu diperbaiki manual; tidak dijalankan ulang.
-- Tidak ada flutter run/build/test; file .litertlm belum tersedia.
-## Sisa
-- Verifikasi runtime model, kompatibilitas paket, impor, inferensi, dan fallback di perangkat.
-- Dokumentasi final di-commit bersama laporan ini.
+# Branch feat/ailocalfull
+
+Input teks, pemahaman notifikasi, kategori, dan deteksi transfer menggunakan
+FunctionGemma lokal. Parser kata, lexicon, Naive Bayes, dan pairing nominal
+otomatis dihapus dari jalur aplikasi. Formulir eksplisit tetap tersedia.
+
+Model .litertlm diimpor melalui penyimpanan Android; pemuatan native divalidasi
+sebelum diaktifkan. Lifecycle model diserialkan dan dilepas setelah idle3menit.
+Engine yang sama melayani notifikasi background dan UI. Antrean lokal tetap
+menjadi sumber pemulihan jika Android menghentikan proses.
+
+Kanal baru memakai chime asli simpenWoi dan ikon notifikasi putih. Logo sumber
+belum ditemukan di root empat branch yang tersedia; launcher asli dipertahankan.
+
+Validasi CI pada commit88e0b4b:54tes lulus, analyzer tanpa isu. Build APK dan
+uji emulator masih dipantau setelah perbaikan aktivasi model saat cold start.
+Lihat docs/BUILD_TEST_REPORT.md untuk bukti dan batas pengujian.
+
+Bobot FunctionGemma tidak tersedia dalam repo. Inferensi nyata dan kualitas
+kategori dengan bobot asli serta suara pada perangkat belum diklaim teruji.
