@@ -12,7 +12,6 @@ lib/
     assistant/          # action, konteks, validasi, eksekusi asisten
     constants/          # nilai domain dan teks lintas fitur
     database/           # AppDatabase, migrasi, seed, tables/
-    parser/             # parser teks; satu tanggung jawab per file
     utils/              # format mata uang, tanggal, input
     widgets/            # widget kecil lintas fitur
   features/<fitur>/
@@ -37,22 +36,32 @@ lib/
 - Gunakan `unawaited(...)` hanya untuk future yang sengaja tidak ditunggu.
 - Setelah mengubah kode: `dart format .` lalu `flutter analyze`.
 ## Asisten dan pembelajaran
-- `AiProvider` dipanggil `InputEngine` hanya saat aturan lokal tidak yakin.
-  `isAvailable` sinkron, `propose` async, dan `null` berarti fallback ke aturan.
+- `InputEngine` selalu memakai `AiProvider` untuk memahami teks. Saran kategori
+  juga memakai inferensi model. Jangan menambahkan fallback berbasis kata kunci,
+  pola kalimat, Naive Bayes, atau aturan merchant. Hasil kosong/gagal perlu
+  ditampilkan sebagai model belum siap atau informasi belum jelas.
+- Input formulir adalah input eksplisit: parsing angka rupiah, validasi ID, dan
+  perhitungan saldo tetap deterministik, tanpa memerlukan model.
 - Validasi setiap `AssistantAction` dengan `validateAssistantAction` sebelum
   dieksekusi; jangan mengeksekusi function call mentah dari model.
 - Prompt, tools, dan akses `FlutterGemma` hanya di `features/assistant/data`.
   Widget tidak boleh memanggil model secara langsung.
 - File model `.litertlm` tidak disimpan di repo; impor lewat Pengaturan > Model AI.
-  Model default nonaktif dan tidak boleh menambah izin INTERNET.
+  Impor berhasil mengaktifkan model. Jangan menambah izin INTERNET atau
+  mengunduh model diam-diam; pengguna harus menyediakan artefak kompatibel.
 - Inisialisasi, impor, hapus, dan unload model hanya lewat
   `FunctionGemmaModelManager`; UI hanya menampilkan status dan aksi pengguna.
 - Jangan mencatat isi input atau notifikasi ke log. Inferensi dan data pengguna
   tetap di perangkat.
 - Feedback kategori dicatat lewat `LearningRepository.applyFeedback`; UI tidak
-  menulis `learning_log` secara langsung.
+  menulis `learning_log` secara langsung. Statistik token historis tidak boleh
+  dipakai sebagai klasifikasi pengganti model. Contoh koreksi dipakai sebagai
+  konteks inferensi, bukan perubahan bobot model di perangkat.
 - Perubahan prompt/tool harus selaras dengan `assets/ai/skill_keuangan.md` dan
-  diuji lewat golden set. Jangan mengubah skema database untuk fitur model.
+  diuji lewat contoh diagnostik dan pengujian otomatis. Jangan mengklaim akurasi
+  hanya dari jumlah usulan. Jangan mengubah skema database untuk fitur model.
+- Jangan menghapus kolom kata kunci/aturan lama tanpa migrasi; kolom tersebut
+  disimpan untuk kompatibilitas data dan tidak lagi menentukan prediksi.
 
 ## Database
 - Nama database, tabel, kolom, dan nilai domain adalah kontrak; jangan diubah saat refactor.
@@ -74,7 +83,7 @@ com.drena.simpen_woi/
     NotificationCaptureService.kt
     CaptureSimulator.kt
     notify/             # contract, intents, text, notifier, receiver
-    parser/             # parser per aplikasi + orchestrator
+    parser/             # daftar paket yang dipantau dan model data
     prefs/              # SharedPreferences
     queue/              # SQLite queue, model, mapper, executor
 ```
@@ -89,4 +98,7 @@ com.drena.simpen_woi/
 - Flutter mendengarkan `simpenwoi/capture_events` lalu memanggil
   `CaptureSyncService.sync()` yang sama dengan jalur start/resume. Jangan
   menambah jalur impor terpisah; guard `sync()` mencegah impor bersamaan.
+- Simpan isi notifikasi ke antrean tanpa memerlukan hasil deteksi kata. Model
+  memahami transaksi saat Flutter aktif (start/resume/event); antrean bertahan
+  saat Flutter mati. Jangan mengklaim inferensi background mandiri.
 - Pertahankan nama paket simulator dan nama tabel/kolom antrean.

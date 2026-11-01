@@ -2,8 +2,6 @@ package com.drena.simpen_woi.capture.inspector
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.drena.simpen_woi.capture.parser.CaptureDetection
-import com.drena.simpen_woi.capture.parser.CaptureSkipReason
 import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import org.json.JSONArray
 import org.json.JSONException
@@ -88,23 +86,6 @@ object CaptureInspector {
         )
     }
 
-    fun resultFor(detection: CaptureDetection, duplicate: Boolean = false): String {
-        if (duplicate) {
-            return "Dilewati: ${CaptureSkipReason.DUPLICATE.label}"
-        }
-        return when (detection) {
-            is CaptureDetection.Captured -> {
-                "Ditangkap ${detection.direction.label} " +
-                    "(${detection.amount}, ${detection.merchant ?: "-"})"
-            }
-
-            is CaptureDetection.Skipped -> {
-                val direction = detection.direction?.let { " ${it.label}" }.orEmpty()
-                "Dilewati$direction: ${detection.reason.label}"
-            }
-        }
-    }
-
     private fun prefs(context: Context): SharedPreferences {
         return context.applicationContext.getSharedPreferences(
             CapturePreferences.PREFS_NAME,
@@ -158,3 +139,4 @@ fun ListenerStatus.toListenerStatusMap(): Map<String, Any?> {
         "inspector_enabled" to inspectorEnabled,
     )
 }
+

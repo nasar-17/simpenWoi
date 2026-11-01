@@ -1,14 +1,16 @@
 package com.drena.simpen_woi
 
-import com.drena.simpen_woi.bridge.CaptureChannelHandler
-import com.drena.simpen_woi.bridge.CaptureEventChannel
+import android.content.Context
+import com.drena.simpen_woi.bridge.CaptureEngineHost
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 
 class MainActivity : FlutterActivity() {
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-        CaptureChannelHandler(this).attach(flutterEngine)
-        CaptureEventChannel.attach(flutterEngine)
+    override fun provideFlutterEngine(context: Context): FlutterEngine {
+        return CaptureEngineHost.getOrCreate(context)
     }
+
+    // The notification listener shares this engine after the UI is closed.
+    // The model itself retains the normal idle-unload policy in Dart.
+    override fun shouldDestroyEngineWithHost(): Boolean = false
 }

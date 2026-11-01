@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/assistant/proposed_action.dart';
 import '../providers/assistant_chat_controller.dart';
 import '../state/assistant_chat_models.dart';
 import '../widgets/assistant_composer.dart';
 import '../widgets/assistant_message_bubble.dart';
+import '../widgets/model_readiness_banner.dart';
 import '../widgets/edit_transaction_sheet.dart';
 
 class AssistantInputPage extends ConsumerStatefulWidget {
@@ -86,9 +88,19 @@ class _AssistantInputPageState extends ConsumerState<AssistantInputPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Input')),
+      appBar: AppBar(
+        title: const Text('Input'),
+        actions: <Widget>[
+          IconButton(
+            tooltip: 'Input formulir',
+            icon: const Icon(Icons.edit_note),
+            onPressed: () => context.push('/input/manual'),
+          ),
+        ],
+      ),
       body: Column(
         children: <Widget>[
+          const ModelReadinessBanner(),
           if (state.busy) const LinearProgressIndicator(),
           Expanded(
             child: state.entries.isEmpty

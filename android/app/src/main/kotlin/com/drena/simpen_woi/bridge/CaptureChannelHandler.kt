@@ -1,6 +1,6 @@
 package com.drena.simpen_woi.bridge
 
-import android.app.Activity
+import android.content.Context
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -22,7 +22,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-class CaptureChannelHandler(private val activity: Activity) {
+class CaptureChannelHandler(private val activity: Context) {
     companion object {
         private const val CHANNEL = "simpenwoi/capture"
     }
@@ -41,6 +41,22 @@ class CaptureChannelHandler(private val activity: Activity) {
     private fun handle(call: MethodCall, result: MethodChannel.Result) {
         try {
             when (call.method) {
+                "resolveAiCapture" -> {
+                    val id = call.argument<Number>("id")?.toLong() ?: 0L
+                    val amount = call.argument<Number>("amount")?.toLong() ?: 0L
+                    val direction = call.argument<String>("direction")
+                    require(id > 0 && amount > 0 && direction in listOf("IN", "OUT"))
+                    runAsync(result) {
+                        val queue = CaptureQueue.getInstance(activity)
+                        queue.resolveAi(id, amount, direction!!,
+                            call.argument<String>("merchant"),
+                            call.argument<Number>("category_id")?.toInt(),
+                            call.argument<String>("note"))
+
+                        null
+                    }
+                }
+
                 "getPendingCaptures" -> {
                     runAsync(result) {
                         CaptureQueue.getInstance(activity).getPending().map { it.toMap() }
@@ -82,7 +98,18 @@ class CaptureChannelHandler(private val activity: Activity) {
                         val queue = CaptureQueue.getInstance(activity)
                         queue.markImported(ids)
                         val notifier = CaptureNotifier(activity)
-                        ids.forEach { notifier.cancel(it) }
+                        ids.forEach { id ->
+                            val capture = queue.getById(id)
+                            notifier.cancel(id)
+                            if (capture != null && capture.amount > 0) {
+                                val categories = CapturePreferences.getCategories(activity) +
+                                    CapturePreferences.getIncomeCategories(activity)
+                                val category = categories.firstOrNull { it.id == capture.categoryId }
+                                if (capture.isTransfer) notifier.showTransferSaved(capture)
+                                else if (category != null) notifier.showSaved(capture, category.name)
+                                else notifier.showQuestion(capture)
+                            }
+                        }
                         notifier.showSummary(queue.countUnanswered())
                         null
                     }
@@ -206,3 +233,4 @@ class CaptureChannelHandler(private val activity: Activity) {
             .mapNotNull { (it as? Number)?.toLong() }
     }
 }
+

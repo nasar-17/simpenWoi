@@ -1,9 +1,37 @@
+import '../../../core/constants/capture_wallet_names.dart';
 import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
 import '../../transactions/data/transaction_repository.dart';
-import '../../wallets/domain/wallet_resolver.dart';
-import '../domain/capture_direction.dart';
 import 'native_capture_models.dart';
+
+/// Reads only explicit source/destination mappings saved by older app versions.
+/// No wallet is guessed if the source app no longer has a matching wallet.
+({Wallet source, Wallet destination}) resolveCapturedTransferWallets(
+  NativeCapture capture,
+  List<Wallet> wallets,
+) {
+  Wallet? findWallet(String? package) {
+    final String? name = captureWalletNames[package];
+    if (name == null) return null;
+    for (final Wallet wallet in wallets) {
+      if (wallet.name.trim().toLowerCase() == name.toLowerCase()) {
+        return wallet;
+      }
+    }
+    return null;
+  }
+
+  final Wallet? source = findWallet(
+    capture.transferSourcePackage ?? capture.sourcePackage,
+  );
+  final Wallet? destination = findWallet(capture.transferDestinationPackage);
+  if (source == null || destination == null || source.id == destination.id) {
+    throw StateError(
+      'Dompet transfer tidak dapat ditentukan. Periksa dompet asal dan tujuan.',
+    );
+  }
+  return (source: source, destination: destination);
+}
 
 class CaptureTransferImporter {
   const CaptureTransferImporter({required this.transactionRepository});
@@ -13,52 +41,36 @@ class CaptureTransferImporter {
   Future<void> importTransfer(
     NativeCapture capture,
     List<Wallet> wallets,
-  ) async {
-    final TransactionRecord? existing = await transactionRepository
-        .getByNativeCaptureId(capture.id);
-    if (existing != null) {
-      return;
-    }
-    final int? pairId = capture.pairId;
-    if (pairId != null) {
-      final TransactionRecord? previous = await transactionRepository
-          .getByNativeCaptureId(pairId);
-      if (previous != null) {
-        await transactionRepository.deleteTransaction(previous.id);
+  ) {
+    return transactionRepository.database.transaction(() async {
+      final TransactionRecord? existing = await transactionRepository
+          .getByNativeCaptureId(capture.id);
+      if (existing?.type == TransactionType.transfer) return;
+      // Resolve before deleting anything. A missing destination must never
+      // remove the original expense or select an unrelated default wallet.
+      final ({Wallet source, Wallet destination}) resolved =
+          resolveCapturedTransferWallets(capture, wallets);
+      if (existing != null) {
+        await transactionRepository.deleteTransaction(existing.id);
       }
-    }
-    final String sourcePackage =
-        capture.transferSourcePackage ?? capture.sourcePackage;
-    final String destinationPackage = capture.transferDestinationPackage ?? '';
-    final Wallet source = resolveWalletForPackage(wallets, sourcePackage);
-    Wallet? destination = destinationPackage.isEmpty
-        ? null
-        : resolveWalletForPackage(wallets, destinationPackage);
-    if (destination == null || destination.id == source.id) {
-      destination = resolveTransferWallet(wallets, sourceId: source.id);
-    }
-    if (destination == null) {
-      final bool incoming = capture.direction == CaptureDirection.incoming;
+      final int? pairId = capture.pairId;
+      if (pairId != null && pairId != capture.id) {
+        final TransactionRecord? previous = await transactionRepository
+            .getByNativeCaptureId(pairId);
+        if (previous != null) {
+          await transactionRepository.deleteTransaction(previous.id);
+        }
+      }
       await transactionRepository.addTransaction(
         amount: capture.amount,
-        type: incoming ? TransactionType.income : TransactionType.expense,
-        walletId: source.id,
+        type: TransactionType.transfer,
+        walletId: resolved.source.id,
+        counterpartWalletId: resolved.destination.id,
         note: capture.note,
         source: TransactionSource.notification,
         createdAt: capture.postedAt,
         nativeCaptureId: capture.id,
       );
-      return;
-    }
-    await transactionRepository.addTransaction(
-      amount: capture.amount,
-      type: TransactionType.transfer,
-      walletId: source.id,
-      counterpartWalletId: destination.id,
-      note: capture.note,
-      source: TransactionSource.notification,
-      createdAt: capture.postedAt,
-      nativeCaptureId: capture.id,
-    );
+    });
   }
 }

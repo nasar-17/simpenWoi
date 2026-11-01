@@ -9,34 +9,61 @@ import 'function_gemma_model_storage.dart';
 
 part 'function_gemma_model_manager_ops.dart';
 
+/// Owns the model and serializes inference, replacement and teardown.
 class FunctionGemmaModelManager {
   FunctionGemmaModelManager({FunctionGemmaModelStorage? storage})
     : _storage = storage ?? FunctionGemmaModelStorage();
 
-  static const int contextTokens = 1024;
+  static const int contextTokens = 4096;
   static const Duration idleUnload = Duration(minutes: 3);
-  static const Duration timeout = Duration(seconds: 25);
 
   final FunctionGemmaModelStorage _storage;
+  Future<void> _tail = Future<void>.value();
   Future<void>? _initialization;
-  Future<InferenceModel>? _loading;
   InferenceModel? _model;
   Timer? _idleTimer;
-  int _activeUsers = 0;
   bool _installed = false;
   bool _enabled = false;
+  bool _disposed = false;
 
   bool get isInstalled => _installed;
   bool get isEnabled => _enabled;
+
+  /// A failed task must not poison the queue for later requests.
+  Future<T> exclusive<T>(Future<T> Function() operation) {
+    final Future<T> result = _tail.then((_) => operation());
+    _tail = result.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    return result;
+  }
+
+  /// The chat, generation and chat.close must all live inside this callback.
+  /// Never time out generation by abandoning its Future: that does not cancel
+  /// native inference and would allow close/replacement while it is running.
+  Future<T?> withModel<T>(Future<T> Function(InferenceModel model) operation) {
+    return exclusive(() async {
+      if (_disposed) throw StateError('Pengelola model sudah ditutup.');
+      await _readStatus();
+      if (!_installed || !_enabled) return null;
+      _idleTimer?.cancel();
+      try {
+        final InferenceModel model = _model ??= await _loadModel();
+        return await operation(model);
+      } catch (_) {
+        // A failed native chat must not be reused by the next request.
+        await _unload();
+        rethrow;
+      } finally {
+        _scheduleUnload();
+      }
+    });
+  }
 
   Future<void> _ensureInitialized() async {
     final Future<void> future = _initialization ??= _initialize();
     try {
       await future;
     } catch (_) {
-      if (identical(_initialization, future)) {
-        _initialization = null;
-      }
+      if (identical(_initialization, future)) _initialization = null;
       rethrow;
     }
   }
@@ -48,34 +75,33 @@ class FunctionGemmaModelManager {
     );
   }
 
-  Future<FunctionGemmaModelStatus> status() async {
+  Future<FunctionGemmaModelStatus> status() => exclusive(_readStatus);
+
+  Future<FunctionGemmaModelStatus> _readStatus() async {
     try {
       await _ensureInitialized();
       final File file = await _storage.targetFile();
       final bool fileExists = await file.exists();
-      final bool installed =
-          fileExists &&
-          await FlutterGemma.isModelInstalled(
-            FunctionGemmaModelStorage.modelId,
-          );
-      final bool enabled = installed && await _storage.markerExists();
-      _installed = installed;
-      _enabled = enabled;
+      // The SDK repository is keyed by the full filename, including extension.
+      _installed = fileExists && await FlutterGemma.isModelInstalled(
+        FunctionGemmaModelStorage.modelId,
+      );
+      _enabled = _installed && await _storage.markerExists();
       return FunctionGemmaModelStatus(
-        installed: installed,
-        enabled: enabled,
+        installed: _installed,
+        enabled: _enabled,
         loaded: _model != null,
         sizeBytes: fileExists ? await file.length() : 0,
       );
-    } catch (error) {
+    } catch (_) {
       _installed = false;
       _enabled = false;
       return FunctionGemmaModelStatus(
         installed: false,
         enabled: false,
-        loaded: false,
+        loaded: _model != null,
         sizeBytes: 0,
-        error: '$error',
+        error: 'Model AI belum dapat diperiksa. Coba impor ulang model.',
       );
     }
   }
@@ -84,67 +110,39 @@ class FunctionGemmaModelManager {
     await status();
   }
 
-  Future<InferenceModel> acquire() async {
-    await _ensureInitialized();
-    if (!_installed) {
-      await refreshStatus();
-    }
-    if (!_installed || !_enabled) {
-      throw StateError('Asisten on-device belum aktif.');
-    }
-    _activeUsers++;
-    _idleTimer?.cancel();
-    try {
-      final InferenceModel? existing = _model;
-      if (existing != null) {
-        return existing;
-      }
-      return await (_loading ??= _loadModel());
-    } catch (_) {
-      _activeUsers--;
-      rethrow;
-    } finally {
-      _loading = null;
-    }
-  }
-
-  Future<InferenceModel> _loadModel() async {
-    final InferenceModel model = await FlutterGemma.getActiveModel(
+  Future<InferenceModel> _loadModel() {
+    return FlutterGemma.getActiveModel(
       maxTokens: contextTokens,
       preferredBackend: PreferredBackend.cpu,
     );
-    _model = model;
-    return model;
-  }
-
-  void release() {
-    if (_activeUsers > 0) {
-      _activeUsers--;
-    }
-    _scheduleUnload();
   }
 
   void _scheduleUnload() {
     _idleTimer?.cancel();
-    if (_activeUsers > 0 || _model == null) {
-      return;
-    }
+    if (_model == null || _disposed) return;
     _idleTimer = Timer(idleUnload, () {
-      unawaited(unload());
+      // Use the same queue as generation: a fired timer can never close a
+      // model during a later chat that has already started.
+      unawaited(exclusive(() async {
+        if (_idleTimer?.isActive ?? false) return;
+        await _unload();
+      }).catchError((Object _) {}));
     });
   }
 
-  Future<void> unload() async {
+  Future<void> unload() => exclusive(_unload);
+
+  Future<void> _unload() async {
     _idleTimer?.cancel();
     _idleTimer = null;
     final InferenceModel? model = _model;
     _model = null;
-    if (model != null) {
-      try {
-        await model.close();
-      } catch (_) {}
-    }
+    if (model != null) await model.close();
   }
 
-  Future<void> dispose() => unload();
+  Future<void> dispose() {
+    _disposed = true;
+    _idleTimer?.cancel();
+    return unload().catchError((Object _) {});
+  }
 }

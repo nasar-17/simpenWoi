@@ -3,13 +3,11 @@ import 'package:drift/drift.dart';
 import '../../../core/database/app_database.dart';
 import '../domain/learning_stats.dart';
 import '../domain/text_normalizer.dart';
-import 'lexicon_repository.dart';
 
 class LearningRepository {
-  LearningRepository(this._database, this._lexiconRepository);
+  LearningRepository(this._database);
 
   final AppDatabase _database;
-  final LexiconRepository _lexiconRepository;
 
   Future<int> record({
     required String inputText,
@@ -34,9 +32,7 @@ class LearningRepository {
     int? newCategoryId,
     String? merchant,
   }) async {
-    final normalizer = TextNormalizer(
-      slang: (await _lexiconRepository.load()).slang,
-    );
+    const TextNormalizer normalizer = TextNormalizer();
     final Set<String> tokens = normalizer.tokenize(inputText).toSet();
     final Set<String> merchantTokens = normalizer
         .tokenize(merchant ?? '')

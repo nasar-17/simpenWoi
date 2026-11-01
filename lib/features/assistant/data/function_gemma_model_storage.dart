@@ -4,7 +4,7 @@ import 'package:path_provider/path_provider.dart';
 
 class FunctionGemmaModelStorage {
   static const String fileName = 'function_gemma_270m.litertlm';
-  static const String modelId = 'function_gemma_270m';
+  static const String modelId = fileName;
 
   Future<File> targetFile() async => File(await _targetPath());
 

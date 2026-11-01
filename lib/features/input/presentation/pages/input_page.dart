@@ -3,11 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/transaction_values.dart';
 import '../../../../core/database/app_database.dart';
-import '../../../../core/parser/parsed_entry.dart';
-import '../../../../core/parser/transaction_parser.dart';
-import '../../../../core/utils/currency.dart';
 import '../../../../core/utils/currency_input_formatter.dart';
-import '../../../categories/domain/category_rules.dart';
 import '../../../categories/domain/category_selection.dart';
 import '../../../transactions/presentation/providers/transaction_providers.dart';
 import '../../../wallets/domain/wallet_resolver.dart';
@@ -23,59 +19,21 @@ class InputPage extends ConsumerStatefulWidget {
 }
 
 class _InputPageState extends ConsumerState<InputPage> {
-  final TextEditingController _inputController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
 
-  ParsedEntry _parsed = const ParsedEntry(
-    amount: 0,
-    type: TransactionType.expense,
-  );
   String _type = TransactionType.expense;
   int? _categoryId;
   int? _walletId;
   int? _counterpartWalletId;
   bool _excludeFromTarget = false;
+  bool _saving = false;
 
   @override
   void dispose() {
-    _inputController.dispose();
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
-  }
-
-  void _onInputChanged(String value) {
-    if (value.trim().isEmpty) {
-      setState(() {
-        _parsed = const ParsedEntry(amount: 0, type: TransactionType.expense);
-        _type = TransactionType.expense;
-        _categoryId = null;
-        _counterpartWalletId = null;
-        _excludeFromTarget = false;
-        _amountController.clear();
-        _noteController.clear();
-      });
-      return;
-    }
-
-    final List<Category> categories =
-        ref.read(categoriesProvider).value ?? const <Category>[];
-    final ParsedEntry parsed = const TransactionParser().parse(
-      value,
-      categories: categoryRulesFrom(categories),
-    );
-    setState(() {
-      _parsed = parsed;
-      _type = parsed.type;
-      if (parsed.amount > 0) {
-        _amountController.text = formatRupiahDigits(parsed.amount);
-      }
-      _noteController.text = parsed.note ?? '';
-      _categoryId = parsed.categoryId;
-      _counterpartWalletId = null;
-      _excludeFromTarget = false;
-    });
   }
 
   void _onTypeChanged(String newType) {
@@ -101,6 +59,7 @@ class _InputPageState extends ConsumerState<InputPage> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     final int amount = parseCurrencyInput(_amountController.text);
     if (amount <= 0) {
@@ -112,6 +71,7 @@ class _InputPageState extends ConsumerState<InputPage> {
     final List<Wallet> wallets = ref.read(walletsProvider).value ?? <Wallet>[];
     final List<Category> categories =
         ref.read(categoriesProvider).value ?? const <Category>[];
+    setState(() => _saving = true);
     final String? error = await saveInputTransaction(
       repository: ref.read(transactionRepositoryProvider),
       wallets: wallets,
@@ -127,15 +87,14 @@ class _InputPageState extends ConsumerState<InputPage> {
     if (!mounted) {
       return;
     }
+    setState(() => _saving = false);
     if (error != null) {
       messenger.showSnackBar(SnackBar(content: Text(error)));
       return;
     }
-    _inputController.clear();
     _amountController.clear();
     _noteController.clear();
     setState(() {
-      _parsed = const ParsedEntry(amount: 0, type: TransactionType.expense);
       _type = TransactionType.expense;
       _categoryId = null;
       _counterpartWalletId = null;
@@ -147,18 +106,15 @@ class _InputPageState extends ConsumerState<InputPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Input')),
+      appBar: AppBar(title: const Text('Input formulir')),
       body: InputFormBody(
-        inputController: _inputController,
         amountController: _amountController,
         noteController: _noteController,
-        parsedAmount: _parsed.amount,
         type: _type,
         categoryId: _categoryId,
         walletId: _walletId,
         counterpartWalletId: _counterpartWalletId,
         excludeFromTarget: _excludeFromTarget,
-        onInputChanged: _onInputChanged,
         onTypeChanged: _onTypeChanged,
         onCategoryChanged: (int? value) {
           setState(() {
@@ -187,8 +143,9 @@ class _InputPageState extends ConsumerState<InputPage> {
             }
           });
         },
-        onSave: _save,
+        onSave: _saving ? null : _save,
       ),
     );
   }
 }
+

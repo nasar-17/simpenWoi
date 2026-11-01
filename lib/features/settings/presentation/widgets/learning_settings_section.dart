@@ -182,8 +182,8 @@ class _LearningSettingsSectionState
         ),
         const Divider(height: 1),
         ListTile(
-          title: const Text('Debug golden set'),
-          subtitle: const Text('Uji prediksi kategori'),
+          title: const Text('Uji AI lokal'),
+          subtitle: const Text('Periksa hasil inferensi tanpa menyimpan transaksi'),
           trailing: const Icon(Icons.bug_report),
           onTap: _showGoldenSetDebug,
         ),

@@ -59,9 +59,11 @@ class ModelAiStatusCard extends StatelessWidget {
             const SizedBox(height: 16),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Aktifkan asisten on-device'),
+              title: const Text('Aktifkan AI lokal'),
               subtitle: Text(
-                enabled ? 'Asisten memakai model lokal.' : 'Nonaktif.',
+                enabled
+                    ? 'Memahami teks dan kategori dengan model di perangkat.'
+                    : 'Pemahaman teks menunggu model aktif. Input formulir tetap tersedia.',
               ),
               value: enabled,
               onChanged: onToggle,
@@ -99,8 +101,9 @@ class ModelAiStatusCard extends StatelessWidget {
       return 'Gagal memuat status model.';
     }
     if (!value.installed) {
-      return 'Belum diimpor';
+      return 'Belum diimpor — pemahaman teks belum tersedia';
     }
+    if (!value.enabled) return 'Terpasang, tetapi belum diaktifkan';
     if (value.loaded) {
       return 'Aktif di memori | ${_formatSize(value.sizeBytes)}';
     }
@@ -132,12 +135,15 @@ class ModelAiInfoCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Impor file .litertlm dari penyimpanan. Tidak ada data yang '
-              'dikirim ke internet.',
+              'FunctionGemma diperlukan untuk memahami input teks dan '
+              'notifikasi. Impor file FunctionGemma 270M .litertlm yang '
+              'kompatibel dari penyimpanan. Tidak ada unduhan otomatis.',
             ),
             const SizedBox(height: 8),
             const Text(
-              'Model dibongkar otomatis setelah 3 menit tidak dipakai.',
+              'Data tetap di perangkat. Model dilepas dari memori setelah '
+              '3 menit tidak dipakai. Saat model tidak aktif, notifikasi '
+              'tetap disimpan untuk diproses setelah model siap.',
             ),
           ],
         ),

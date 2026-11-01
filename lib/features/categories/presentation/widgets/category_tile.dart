@@ -19,7 +19,6 @@ class CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String? keywords = category.keywords?.trim();
     return ListTile(
       leading: CircleAvatar(
         child: Icon(
@@ -29,9 +28,6 @@ class CategoryTile extends StatelessWidget {
         ),
       ),
       title: Text(category.name),
-      subtitle: keywords == null || keywords.isEmpty
-          ? null
-          : Text('Kata kunci: $keywords'),
       trailing: PopupMenuButton<String>(
         onSelected: (String action) {
           if (action == 'edit') {
@@ -49,3 +45,4 @@ class CategoryTile extends StatelessWidget {
     );
   }
 }
+

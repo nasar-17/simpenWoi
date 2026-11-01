@@ -17,7 +17,7 @@ import '../../data/function_gemma_provider.dart';
 import '../../domain/ai_provider.dart';
 import '../../domain/category_scorer.dart';
 import '../../domain/input_engine.dart';
-import '../../domain/naive_bayes_category_scorer.dart';
+import '../../domain/model_category_scorer.dart';
 
 final Provider<AssistantDataRepository> assistantDataRepositoryProvider =
     Provider<AssistantDataRepository>(
@@ -48,9 +48,9 @@ final Provider<AssistantExecutor> assistantExecutorProvider =
 
 final Provider<CategoryScorer> categoryScorerProvider =
     Provider<CategoryScorer>(
-      (ref) => NaiveBayesCategoryScorer(
-        learningRepository: ref.watch(learningRepositoryProvider),
-        lexiconRepository: ref.watch(lexiconRepositoryProvider),
+      (ref) => ModelCategoryScorer(
+        ai: ref.watch(aiProviderProvider),
+        data: ref.watch(assistantDataRepositoryProvider),
       ),
     );
 
@@ -73,7 +73,6 @@ final Provider<AiProvider> aiProviderProvider = Provider<AiProvider>((ref) {
 final Provider<InputEngine> inputEngineProvider = Provider<InputEngine>((ref) {
   return InputEngine(
     dataRepository: ref.watch(assistantDataRepositoryProvider),
-    categoryScorer: ref.watch(categoryScorerProvider),
     aiProvider: ref.watch(aiProviderProvider),
   );
 });

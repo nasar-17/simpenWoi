@@ -7,6 +7,7 @@ import '../features/capture/presentation/pages/uncategorized_page.dart';
 import '../features/categories/presentation/pages/categories_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/learning/presentation/golden_set_debug_page.dart';
+import '../features/input/presentation/pages/input_page.dart';
 import '../features/recap/presentation/pages/recap_page.dart';
 import '../features/savings_goals/presentation/pages/savings_goals_page.dart';
 import '../features/settings/presentation/pages/model_ai_page.dart';
@@ -78,6 +79,11 @@ GoRouter createAppRouter() {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/input/manual',
+        name: 'manual-input',
+        builder: (BuildContext context, GoRouterState state) => const InputPage(),
       ),
       GoRoute(
         path: '/uncategorized',

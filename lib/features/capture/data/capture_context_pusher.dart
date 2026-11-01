@@ -34,33 +34,14 @@ class CaptureContextPusher {
       incomeCategories,
       TransactionType.income,
     );
-    final List<MerchantRule> rules = await merchantRuleRepository.getAll();
-    final Map<int, String> categoryNames = <int, String>{
-      for (final Category category in categories) category.id: category.name,
-    };
-
     await bridge.pushCategories(
       categories: expenseCategories.map(_categoryPayload).toList(),
       topCategories: topCategories.map(_categoryPayload).toList(),
       incomeCategories: incomeCategories.map(_categoryPayload).toList(),
       topIncomeCategories: topIncomeCategories.map(_categoryPayload).toList(),
     );
-    await bridge.pushMerchantRules(
-      rules
-          .where(
-            (MerchantRule rule) =>
-                rule.useCount >= CaptureConstants.merchantRuleThreshold &&
-                categoryNames.containsKey(rule.categoryId),
-          )
-          .map(
-            (MerchantRule rule) => <String, Object?>{
-              CaptureKeys.merchant: rule.merchant,
-              CaptureKeys.categoryId: rule.categoryId,
-              CaptureKeys.categoryName: categoryNames[rule.categoryId] ?? '',
-            },
-          )
-          .toList(),
-    );
+    // Clear legacy automatic merchant rules; classification is model-only.
+    await bridge.pushMerchantRules(<Map<String, Object?>>[]);
   }
 
   Future<List<Category>> _topCategories(
@@ -98,3 +79,4 @@ class CaptureContextPusher {
     };
   }
 }
+

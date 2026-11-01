@@ -19,7 +19,6 @@ class CategoryFormSheet extends ConsumerStatefulWidget {
 
 class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   late final TextEditingController _nameController;
-  late final TextEditingController _keywordsController;
   late String _type;
   bool _saving = false;
 
@@ -30,14 +29,12 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     super.initState();
     final Category? category = widget.category;
     _nameController = TextEditingController(text: category?.name);
-    _keywordsController = TextEditingController(text: category?.keywords);
     _type = category?.type ?? widget.initialType ?? TransactionType.expense;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _keywordsController.dispose();
     super.dispose();
   }
 
@@ -51,16 +48,15 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
       _saving = true;
     });
     try {
-      final String keywords = _keywordsController.text;
       final Category? category = widget.category;
       if (category == null) {
         await ref
             .read(categoryServiceProvider)
-            .add(name: name, type: _type, keywords: keywords);
+            .add(name: name, type: _type);
       } else {
         await ref
             .read(categoryServiceProvider)
-            .update(id: category.id, name: name, keywords: keywords);
+            .update(id: category.id, name: name, keywords: category.keywords);
       }
       if (mounted) {
         Navigator.of(context).pop();
@@ -106,14 +102,6 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
               decoration: const InputDecoration(labelText: 'Nama kategori'),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _keywordsController,
-              decoration: const InputDecoration(
-                labelText: 'Kata kunci (opsional)',
-                helperText: 'Pisahkan dengan koma, contoh: kopi, cafe',
-              ),
-            ),
-            const SizedBox(height: 12),
             if (_isEdit)
               Text(
                 'Jenis: ${_type == TransactionType.income ? UiText.income : UiText.expense}',
@@ -149,3 +137,4 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     );
   }
 }
+

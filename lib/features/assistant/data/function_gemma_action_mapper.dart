@@ -8,11 +8,13 @@ import '../../../core/assistant/proposed_action.dart';
 import '../../../core/constants/transaction_values.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/utils/currency.dart';
+import 'function_gemma_call_validator.dart';
 
 class FunctionGemmaActionMapper {
   const FunctionGemmaActionMapper();
 
   ProposedAction? map(FunctionCallResponse call, AssistantContext context) {
+    if (!isValidFunctionGemmaCall(call)) return null;
     final Map<String, Object?> json = <String, Object?>{
       ...call.args,
       'type': call.name,

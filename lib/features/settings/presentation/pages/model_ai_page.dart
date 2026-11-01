@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/capture_runtime.dart';
 import '../../../assistant/data/function_gemma_model_manager.dart';
 import '../../../assistant/data/function_gemma_model_status.dart';
 import '../../../assistant/presentation/providers/assistant_providers.dart';
@@ -47,7 +50,8 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
     }
     await _run(() async {
       await ref.read(functionGemmaModelManagerProvider).importFromPath(path);
-      _showMessage('Model AI berhasil diimpor.');
+      if (mounted) unawaited(ref.read(captureRuntimeProvider).sync());
+      _showMessage('Model AI diimpor dan diaktifkan. Coba Uji AI lokal.');
     }, 'Gagal mengimpor model. Pastikan file .litertlm valid.');
   }
 
@@ -83,6 +87,7 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
   Future<void> _toggleEnabled(bool enabled) async {
     await _run(() async {
       await ref.read(functionGemmaModelManagerProvider).setEnabled(enabled);
+      if (enabled && mounted) unawaited(ref.read(captureRuntimeProvider).sync());
     }, 'Gagal mengubah status asisten on-device.');
   }
 
@@ -149,9 +154,9 @@ class _ModelAiPageState extends ConsumerState<ModelAiPage> {
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.bug_report_outlined),
-                      title: const Text('Debug golden set'),
+                      title: const Text('Uji AI lokal'),
                       subtitle: const Text(
-                        'Bandingkan prediksi rules dan FunctionGemma',
+                        'Periksa hasil inferensi dan waktu proses',
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: installed && enabled

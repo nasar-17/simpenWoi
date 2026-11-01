@@ -1,10 +1,7 @@
 package com.drena.simpen_woi.capture.notify
 
 import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
@@ -13,8 +10,18 @@ import com.drena.simpen_woi.capture.prefs.CapturePreferences
 import com.drena.simpen_woi.capture.queue.PendingCapture
 
 class CaptureNotifier(private val context: Context) {
+    fun showAiPending(captureId: Long) {
+        val builder = baseBuilder()
+            .setContentTitle("simpenWoi sedang menunggu AI lokal")
+            .setContentText("Notifikasi tersimpan. AI lokal memproses saat model siap.")
+            .setSilent(true)
+            .setContentIntent(CaptureNotificationIntents.openApp(context, captureId))
+            .setAutoCancel(false)
+            .setGroup(CaptureNotificationContract.GROUP_KEY)
+        notifySafely(CaptureNotificationIntents.notificationId(captureId), builder.build())
+    }
+
     fun showQuestion(capture: PendingCapture) {
-        ensureChannel()
         val incoming = capture.direction == CaptureDirection.IN.label
         val builder = baseBuilder()
             .setWhen(capture.postedAt)
@@ -80,7 +87,6 @@ class CaptureNotifier(private val context: Context) {
     }
 
     fun showSaved(capture: PendingCapture, categoryName: String) {
-        ensureChannel()
         val incoming = capture.direction == CaptureDirection.IN.label
         val builder = baseBuilder()
             .setWhen(capture.postedAt)
@@ -110,7 +116,6 @@ class CaptureNotifier(private val context: Context) {
     }
 
     fun showTransferSaved(capture: PendingCapture) {
-        ensureChannel()
         val builder = baseBuilder()
             .setWhen(capture.postedAt)
             .setContentTitle(CaptureNotificationText.transferSavedTitle(capture))
@@ -133,7 +138,6 @@ class CaptureNotifier(private val context: Context) {
     }
 
     fun showSummary(count: Int) {
-        ensureChannel()
         val manager = NotificationManagerCompat.from(context)
         if (count <= 1) {
             manager.cancel(CaptureNotificationContract.SUMMARY_ID)
@@ -147,6 +151,7 @@ class CaptureNotifier(private val context: Context) {
             .setTimeoutAfter(CaptureNotificationContract.QUESTION_TIMEOUT_MS)
             .setGroup(CaptureNotificationContract.GROUP_KEY)
             .setGroupSummary(true)
+            .setSilent(true)
         notifySafely(CaptureNotificationContract.SUMMARY_ID, builder.build())
     }
 
@@ -155,30 +160,8 @@ class CaptureNotifier(private val context: Context) {
             .cancel(CaptureNotificationIntents.notificationId(captureId))
     }
 
-    private fun baseBuilder(): NotificationCompat.Builder {
-        return NotificationCompat.Builder(context, CaptureNotificationContract.CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOnlyAlertOnce(true)
-            .setShowWhen(true)
-    }
-
-    private fun ensureChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (manager.getNotificationChannel(CaptureNotificationContract.CHANNEL_ID) != null) return
-        val channel = NotificationChannel(
-            CaptureNotificationContract.CHANNEL_ID,
-            CaptureNotificationContract.CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_LOW,
-        ).apply {
-            description = CaptureNotificationText.CHANNEL_DESCRIPTION
-            setSound(null, null)
-            enableVibration(false)
-            setShowBadge(false)
-        }
-        manager.createNotificationChannel(channel)
-    }
+    private fun baseBuilder(): NotificationCompat.Builder =
+        CaptureNotificationChannel.builder(context)
 
     private fun notifySafely(id: Int, notification: Notification) {
         try {
@@ -187,3 +170,4 @@ class CaptureNotifier(private val context: Context) {
         }
     }
 }
+

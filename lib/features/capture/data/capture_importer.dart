@@ -7,6 +7,7 @@ import '../domain/capture_category_classifier.dart';
 import '../domain/capture_category_resolver.dart';
 import '../domain/capture_direction.dart';
 import 'capture_context_pusher.dart';
+import 'capture_ai_processor.dart';
 import 'capture_learning_recorder.dart';
 import 'capture_transfer_importer.dart';
 import 'native_capture_bridge.dart';
@@ -22,6 +23,7 @@ class CaptureImporter {
     required this.classifier,
     required this.learningRecorder,
     required this.transferImporter,
+    required this.aiProcessor,
   });
 
   final NativeCaptureBridge bridge;
@@ -31,6 +33,7 @@ class CaptureImporter {
   final CaptureCategoryClassifier classifier;
   final CaptureLearningRecorder learningRecorder;
   final CaptureTransferImporter transferImporter;
+  final CaptureAiProcessor aiProcessor;
 
   Future<void> importPending() async {
     final List<NativeCapture> captures = await bridge.getPendingCaptures();
@@ -45,8 +48,13 @@ class CaptureImporter {
     final List<Category> categories = await transactionRepository
         .getCategories();
 
+    await aiProcessor.resolvePending(
+      captures: captures, wallets: wallets, categories: categories,
+    );
     bool rulesChanged = false;
-    for (final NativeCapture capture in captures) {
+    // Re-read because AI resolution may have changed queue status or fields.
+    for (final NativeCapture capture in await bridge.getPendingCaptures()) {
+      if (capture.direction == 'raw') continue;
       if (capture.amount <= 0) {
         await bridge.markImported(<int>[capture.id]);
         continue;
@@ -58,6 +66,12 @@ class CaptureImporter {
         continue;
       }
 
+      final TransactionRecord? existing = await transactionRepository
+          .getByNativeCaptureId(capture.id);
+      if (existing != null && existing.type != TransactionType.transfer) {
+        await bridge.markImported(<int>[capture.id]);
+        continue;
+      }
       final bool incoming = capture.direction == CaptureDirection.incoming;
       final String type = incoming
           ? TransactionType.income
@@ -67,7 +81,11 @@ class CaptureImporter {
         categories,
         classifier,
       );
-      await transactionRepository.addTransaction(
+      await transactionRepository.database.transaction(() async {
+        if (existing != null) {
+          await transactionRepository.deleteTransaction(existing.id);
+        }
+        await transactionRepository.addTransaction(
         amount: capture.amount,
         type: type,
         walletId: resolveWalletForPackage(wallets, capture.sourcePackage).id,
@@ -77,14 +95,8 @@ class CaptureImporter {
         source: TransactionSource.notification,
         createdAt: capture.postedAt,
         nativeCaptureId: capture.id,
-      );
-      if (categoryId != null) {
-        await learningRecorder.record(
-          inputText: capture.note ?? capture.merchant ?? '',
-          merchant: capture.merchant,
-          newCategoryId: categoryId,
         );
-      }
+      });
 
       if (!incoming && categoryId != null && capture.categoryId != null) {
         final String? merchant = capture.merchant?.trim();

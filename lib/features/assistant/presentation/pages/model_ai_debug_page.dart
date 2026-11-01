@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/assistant/assistant_action.dart';
-import '../../../../core/assistant/assistant_context.dart';
 import '../../../../core/assistant/proposed_action.dart';
-import '../../../../core/constants/transaction_values.dart';
-import '../../domain/category_scorer.dart';
+import '../../data/function_gemma_model_status.dart';
 import '../providers/assistant_providers.dart';
 import '../widgets/model_ai_comparison_card.dart';
 
+/// Runs real local inference without executing any returned action.
 class ModelAiDebugPage extends ConsumerStatefulWidget {
   const ModelAiDebugPage({super.key});
 
@@ -30,123 +28,56 @@ class _ModelAiDebugPageState extends ConsumerState<ModelAiDebugPage> {
     'bayar internet 150rb',
   ];
 
-  final List<({String input, String rules, String ai})> _rows = [];
-  AssistantContext? _context;
+  final List<({String input, String result, int milliseconds})> _rows = [];
   bool _running = false;
   String? _error;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadContext();
-  }
-
-  Future<void> _loadContext() async {
-    try {
-      final AssistantContext context = await ref
-          .read(assistantDataRepositoryProvider)
-          .loadContext();
-      if (mounted) {
-        setState(() {
-          _context = context;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _error = 'Gagal memuat data pengguna.';
-        });
-      }
-    }
-  }
-
   Future<void> _run() async {
-    final AssistantContext? context = _context;
-    if (_running || context == null) return;
-    final ai = ref.read(aiProviderProvider);
-    if (!ai.isAvailable) {
-      setState(() {
-        _error = 'Model AI belum diimpor atau belum diaktifkan.';
-      });
-      return;
-    }
+    if (_running) return;
     setState(() {
       _running = true;
       _error = null;
       _rows.clear();
     });
     try {
+      final FunctionGemmaModelStatus status = await ref
+          .read(functionGemmaModelManagerProvider)
+          .status();
+      if (!status.installed || !status.enabled) {
+        throw StateError('Impor dan aktifkan model AI terlebih dahulu.');
+      }
       for (final String input in _inputs) {
-        final List<CategoryScore> scores = await ref
-            .read(categoryScorerProvider)
-            .score(
-              text: input,
-              type: TransactionType.expense,
-              categories: context.categories,
-            );
-        final int? rulesCategoryId = scores.isEmpty
-            ? null
-            : scores.first.categoryId;
-        List<ProposedAction>? proposals;
-        try {
-          proposals = await ai.propose(input, context);
-        } catch (_) {
-          proposals = null;
-        }
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
+        final Stopwatch stopwatch = Stopwatch()..start();
+        final List<ProposedAction> proposals = await ref
+            .read(inputEngineProvider)
+            .process(input);
+        stopwatch.stop();
+        if (!mounted) return;
         setState(() {
           _rows.add((
             input: input,
-            rules: _nameOrDash(rulesCategoryId),
-            ai: _aiLabel(proposals),
+            result: proposals.map((ProposedAction p) => p.summary).join('\n'),
+            milliseconds: stopwatch.elapsedMilliseconds,
           ));
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Perbandingan gagal dijalankan.';
+          _error = 'Uji inferensi belum selesai. Pastikan model yang kompatibel '
+              'sudah diimpor, aktif, dan perangkat memiliki memori cukup.';
         });
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _running = false;
-        });
-      }
+      if (mounted) setState(() => _running = false);
     }
-  }
-
-  String _aiLabel(List<ProposedAction>? proposals) {
-    if (proposals == null || proposals.isEmpty) {
-      return 'fallback';
-    }
-    final AssistantAction action = proposals.first.action;
-    return switch (action) {
-      AddTransactionAction(:final categoryId) => _nameOrDash(categoryId),
-      CreateCategoryAction() => 'buat kategori',
-      SetWalletBalanceAction() => 'ubah saldo',
-      TransferAction() => 'transfer',
-      CreateWalletAction() => 'buat dompet',
-      SetSpendingTargetAction() => 'target',
-      QueryTotalAction() => 'query total',
-      AskClarificationAction() => 'klarifikasi',
-    };
-  }
-
-  String _nameOrDash(int? categoryId) {
-    if (categoryId == null) {
-      return '—';
-    }
-    return _context?.categoryById(categoryId)?.name ?? 'tidak dikenal';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Debug Model AI')),
+      appBar: AppBar(title: const Text('Uji AI lokal')),
       body: Column(
         children: <Widget>[
           Padding(
@@ -154,15 +85,14 @@ class _ModelAiDebugPageState extends ConsumerState<ModelAiDebugPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const Text(
-                  'Bandingkan kategori dari rules dan FunctionGemma untuk '
-                  'sepuluh input golden set. Proses bisa memakan waktu.',
-                ),
+                const Text('Jalankan model pada sepuluh contoh input. '
+                    'Hasil hanya ditampilkan; tidak ada transaksi yang disimpan. '
+                    'Periksa nominal, jenis, dompet, dan kategori setiap usulan.'),
                 const SizedBox(height: 12),
                 FilledButton.icon(
-                  onPressed: _running || _context == null ? null : _run,
+                  onPressed: _running ? null : _run,
                   icon: const Icon(Icons.play_arrow),
-                  label: const Text('Jalankan perbandingan'),
+                  label: const Text('Jalankan inferensi'),
                 ),
               ],
             ),
@@ -170,25 +100,23 @@ class _ModelAiDebugPageState extends ConsumerState<ModelAiDebugPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
+              child: Text(_error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           if (_running) const LinearProgressIndicator(),
           Expanded(
             child: _rows.isEmpty
-                ? const Center(child: Text('Belum ada hasil.'))
+                ? const Center(child: Text('Belum ada hasil inferensi.'))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _rows.length,
                     itemBuilder: (BuildContext context, int index) {
-                      final ({String input, String rules, String ai}) row =
+                      final ({String input, String result, int milliseconds}) row =
                           _rows[index];
                       return ModelAiComparisonCard(
                         input: row.input,
-                        rules: row.rules,
-                        ai: row.ai,
+                        result: row.result,
+                        milliseconds: row.milliseconds,
                       );
                     },
                   ),

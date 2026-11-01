@@ -35,17 +35,17 @@ class FunctionGemmaProvider implements AiProvider {
   Future<List<ProposedAction>?> propose(
     String input,
     AssistantContext context,
+  ) => modelManager.withModel<List<ProposedAction>?>(
+    (InferenceModel model) => _propose(input, context, model),
+  );
+
+  Future<List<ProposedAction>?> _propose(
+    String input,
+    AssistantContext context,
+    InferenceModel model,
   ) async {
-    if (!modelManager.isInstalled) {
-      await modelManager.refreshStatus();
-    }
-    if (!isAvailable) {
-      return null;
-    }
-    InferenceModel? model;
     InferenceChat? chat;
     try {
-      model = await modelManager.acquire();
       final List<LearningLogEntry> examples = await learningRepository
           .recentExamples(limit: 3);
       final String prompt = await _promptBuilder.build(
@@ -62,9 +62,7 @@ class FunctionGemmaProvider implements AiProvider {
         modelType: ModelType.functionGemma,
       );
       await chat.addQueryChunk(Message.text(text: input, isUser: true));
-      final ModelResponse response = await chat.generateChatResponse().timeout(
-        FunctionGemmaModelManager.timeout,
-      );
+      final ModelResponse response = await chat.generateChatResponse();
       final List<FunctionCallResponse> calls = _functionCalls(response);
       if (calls.isEmpty) {
         return null;
@@ -79,15 +77,10 @@ class FunctionGemmaProvider implements AiProvider {
       }
       return proposals;
     } catch (_) {
-      return null;
+      throw StateError('Inferensi AI lokal gagal. Periksa model di Pengaturan > Model AI.');
     } finally {
       if (chat != null) {
-        try {
-          await chat.close();
-        } catch (_) {}
-      }
-      if (model != null) {
-        modelManager.release();
+        await chat.close();
       }
     }
   }

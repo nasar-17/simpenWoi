@@ -27,6 +27,18 @@ class NativeCaptureBridge {
         .toList(growable: false);
   }
 
+  Future<void> resolveAiCapture({
+    required int id,
+    required int amount,
+    required String direction,
+    required int? categoryId,
+    required String? merchant,
+    required String? note,
+  }) => _channel.invokeMethod<void>('resolveAiCapture', <String, Object?>{
+    'id': id, 'amount': amount, 'direction': direction,
+    'category_id': categoryId, 'merchant': merchant, 'note': note,
+  });
+
   Future<void> markImported(List<int> ids) async {
     if (ids.isEmpty) {
       return;
@@ -154,3 +166,4 @@ class NativeCaptureBridge {
     return InspectorListenerStatus.fromMap(raw ?? <Object?, Object?>{});
   }
 }
+

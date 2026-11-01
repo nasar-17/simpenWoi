@@ -4,7 +4,8 @@ Aplikasi pengatur keuangan Android yang cepat, mudah, dan sepenuhnya offline.
 
 ## Fitur
 
-- Catat transaksi cepat dari teks bebas (mis. `bakso 15rb`) dengan parser lokal.
+- Catat transaksi dari teks bebas (mis. `bakso 15rb`) melalui FunctionGemma lokal.
+- Input formulir untuk mengisi nominal, jenis, dompet, dan kategori secara langsung.
 - Asisten Input untuk mencatat, menanyakan total, transfer, dan mengelola
   dompet/kategori dari teks bebas.
 - Dompet dengan saldo otomatis, kategori pengeluaran/pemasukan.
@@ -15,9 +16,9 @@ Aplikasi pengatur keuangan Android yang cepat, mudah, dan sepenuhnya offline.
 - Kategorisasi langsung dari notifikasi (tombol kategori + balasan teks).
 - Deteksi transfer dari pasangan notifikasi keluar/masuk dan opsi **Bukan transfer**.
 - Layar "Perlu dilengkapi" untuk transaksi yang belum berkategori.
-- Saran kategori yang belajar dari koreksi lokal, debug golden set, dan ekspor JSONL.
-- Asisten on-device opsional dengan FunctionGemma 270M; model diimpor manual
-  dan nonaktif secara default.
+- Saran kategori melalui model lokal, contoh koreksi pengguna, uji inferensi, dan ekspor JSONL.
+- FunctionGemma 270M sebagai jalur pemahaman teks dan notifikasi; model diimpor
+  dari penyimpanan lalu diaktifkan otomatis setelah impor berhasil.
 - Navigasi lima tab: Beranda, Rekap, Input, Target, Pengaturan.
 
 ## Prinsip offline-first
@@ -26,7 +27,7 @@ Aplikasi pengatur keuangan Android yang cepat, mudah, dan sepenuhnya offline.
 - Tidak ada izin INTERNET.
 - Seluruh data transaksi disimpan lokal di perangkat menggunakan SQLite melalui Drift.
 - Isi notifikasi dan input asisten diproses di perangkat dan tidak pernah dikirim keluar.
-- Model AI opsional juga berjalan sepenuhnya di perangkat; file model tidak
+- Model AI berjalan sepenuhnya di perangkat; file model tidak
   disertakan dalam aplikasi dan tidak diunduh otomatis.
 
 ## Struktur folder
@@ -39,11 +40,10 @@ lib/
     assistant/            # action, konteks, validasi, eksekusi asisten
     constants/            # nilai domain dan teks lintas fitur
     database/             # skema Drift, migrasi, seed, tables/
-    parser/               # parser teks dan nominal
     utils/                # format rupiah, tanggal, input nominal
     widgets/              # widget kecil lintas fitur
   features/
-    assistant/            # Input asisten, scorer, prompt, model on-device
+    assistant/            # input asisten, inferensi, prompt, model on-device
     capture/              # jembatan notifikasi native + impor + kategori
     categories/           # kategori dan aturan kategori
     home/                 # beranda, input cepat, edit transaksi
@@ -55,7 +55,7 @@ lib/
     transactions/         # repository, model, dan provider transaksi
     wallets/              # dompet dan saldo
 assets/
-  ai/                     # lexicon dan prompt asisten
+  ai/                     # instruksi model lokal
 docs/
   CONVENTIONS.md          # struktur dan aturan kontribusi
 android/
@@ -67,7 +67,7 @@ android/
       NotificationCaptureService.kt # NotificationListenerService
       CaptureSimulator.kt           # simulasi debug
       notify/                       # contract, intents, text, notifier, receiver
-      parser/                       # parser notifikasi per aplikasi
+      parser/                       # daftar aplikasi yang dipantau dan model data
       prefs/                        # kategori, aturan merchant, dedupe
       queue/                        # antrean SQLite + pemasangan transfer
 ```
@@ -81,14 +81,15 @@ android/
 4. Nonaktifkan optimasi baterai untuk simpenWoi (terutama Xiaomi/MIUI,
    Oppo/ColorOS, Vivo/FuntouchOS, Samsung One UI).
 
-Notifikasi transaksi keluar dari aplikasi yang dipantau akan dicatat ke antrean
-lokal. simpenWoi menampilkan notifikasi `Rp25.000 di Warung Bu Tini` dengan
-tombol kategori teratas dan opsi **Ketik** untuk catatan. Selama aplikasi
-terbuka, perubahan antrean (capture baru, hasil pasangan transfer, atau kategori
-dari notifikasi) dikirim ke Flutter melalui EventChannel dan langsung
-disinkronkan. Saat aplikasi dibuka kembali, impor tetap dijalankan sebagai
-cadangan. Aturan merchant dipakai setelah kategori yang sama dipilih minimal dua
-kali.
+Isi notifikasi dari aplikasi yang dipantau disimpan ke antrean SQLite lokal.
+FunctionGemma memahami nominal, arah transaksi, merchant, dan kategorinya dari
+isi notifikasi. Tidak ada kamus kata atau aturan merchant sebagai pengganti
+inferensi model. Notifikasi yang belum dapat dipahami tetap menunggu pemrosesan.
+
+Inferensi berjalan saat Flutter aktif: saat aplikasi dibuka, kembali aktif,
+atau menerima event capture. Saat proses Flutter tidak hidup, layanan Android
+masih dapat menyimpan notifikasi; pemahaman AI dilanjutkan ketika aplikasi
+kembali dibuka. Ini belum merupakan inferensi model mandiri di background.
 
 Notifikasi keluar dan masuk dengan nominal sama dari aplikasi berbeda dalam
 10 menit dipasangkan menjadi satu transfer. simpenWoi menampilkan notifikasi
@@ -104,31 +105,42 @@ Pada build debug, **Pengaturan > Notifikasi Otomatis** menyediakan tombol
 
 Build debug juga memiliki **Pengaturan > Inspektor Notifikasi**. Saat diaktifkan,
 inspektor menyimpan maksimal 50 notifikasi terakhir secara lokal beserta hasil
-deteksi parser (ditangkap atau alasan dilewati), sehingga notifikasi yang tidak
+status antrean, sehingga notifikasi yang tidak
 tertangkap dapat didiagnosis. Isi notifikasi hanya disimpan selama inspektor
 aktif dan dapat dihapus dari layar tersebut.
 
 Kategori dan dompet dapat dikelola dari **Pengaturan > Kelola kategori/dompet**.
-Kata kunci kategori dipakai parser sebelum kamus bawaan, dan setiap perubahan
-kategori langsung dikirim ulang ke layanan capture native. Menghapus kategori
+Nama dan jenis kategori menjadi konteks model; tidak perlu mengisi kata kunci.
+Menghapus kategori
 atau dompet yang masih dipakai akan memindahkan transaksi terkait, termasuk
 transaksi transfer yang memakai dompet tersebut sebagai asal atau tujuan.
 
 ## Asisten dan model AI
 
-Asisten Input memakai aturan dan scorer lokal terlebih dahulu. Jika hasilnya
-belum yakin, aplikasi dapat memakai FunctionGemma 270M yang berjalan di perangkat.
-Tanpa model, seluruh fitur asisten tetap berfungsi dengan aturan lokal.
+FunctionGemma 270M dipanggil untuk memahami input teks dan saran kategori.
+Tidak ada fallback ke parser kata kunci atau klasifikasi Naive Bayes. Jika model
+belum diimpor, dinonaktifkan, gagal, atau hasilnya belum jelas, aplikasi meminta
+pengguna memeriksa model atau melengkapi informasi. **Input > Input formulir**
+tetap dapat dipakai untuk pencatatan eksplisit tanpa inferensi.
 
-Untuk mengaktifkan model:
+Untuk menyiapkan model:
 
-1. Unduh file model `.litertlm` yang kompatibel secara terpisah.
-2. Buka **Pengaturan > Model AI**.
-3. Ketuk **Impor model**, pilih file, lalu aktifkan **Asisten on-device**.
-4. Gunakan **Debug golden set** untuk membandingkan prediksi aturan dan model.
+1. Baca [dokumentasi FunctionGemma Google](https://ai.google.dev/gemma/docs/functiongemma)
+   dan [model card resminya](https://huggingface.co/google/functiongemma-270m-it).
+   Ikuti persyaratan akses dan lisensi model yang berlaku.
+2. Dapatkan artefak **FunctionGemma 270M `.litertlm` yang kompatibel dengan
+   LiteRT-LM**. Mengganti ekstensi file GGUF, TFLite, atau model lain tidak
+   menghasilkan model yang kompatibel. Repo ini tidak membundel atau mengunduh model.
+3. Buka **Pengaturan > Model AI > Impor model**. Setelah berhasil, model aktif.
+4. Buka **Uji AI lokal** untuk menjalankan inferensi atas sepuluh contoh input.
+   Halaman ini hanya menampilkan usulan dan waktu proses; tidak menyimpan transaksi
+   dan tidak mengklaim persentase akurasi dari hasil yang belum dinilai.
+5. Coba input Anda sendiri, periksa nominal, jenis, dompet, dan kategori sebelum
+   menyimpan. Koreksi yang diterima dapat dipakai sebagai contoh dalam konteks model.
 
-Model nonaktif secara default, tidak disertakan dalam repo, dan tidak diunduh
-otomatis. Model dibongkar dari memori setelah 3 menit tidak dipakai. Jangan
+Kinerja dan dukungan model bergantung perangkat, memori, dan artefak model.
+Model dilepas dari memori setelah 3 menit tidak dipakai. Operasi model diserialkan
+agar dua input tidak memakai sesi inferensi yang sama bersamaan. Tidak perlu
 menambahkan izin INTERNET untuk fitur ini.
 
 ## Menjalankan
@@ -139,10 +151,16 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
-## Status
+## Validasi
 
-Tahap 1-8 selesai: setup, MVP transaksi/rekap/target tabungan, tangkapan
-notifikasi, navigasi lima tab, transfer antar dompet, target pengeluaran,
-asisten dan pembelajaran kategori, serta ekspor dataset. Model on-device
-opsional sudah terpasang di kode, tetapi verifikasi runtime di perangkat belum
-dilakukan. Budget, OCR struk, dan input suara belum diimplementasikan.
+```sh
+dart format .
+flutter analyze
+flutter test
+flutter build apk --debug
+```
+
+Uji inferensi nyata memerlukan perangkat Android dan file model kompatibel.
+Build APK, kualitas pemahaman notifikasi, suara, izin Android, dan ketahanan
+background tetap perlu diverifikasi pada perangkat; halaman uji model bukan
+pengganti pengujian APK. Budget, OCR struk, dan input suara belum diimplementasikan.

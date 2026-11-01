@@ -13,10 +13,12 @@ class CaptureQueue private constructor(context: Context) {
         postedAt: Long,
         direction: String,
         categoryId: Int?,
+        note: String? = null,
     ): Long {
         val values = ContentValues().apply {
             put("amount", amount)
             put("merchant", merchant)
+            put("note", note)
             put("source_package", sourcePackage)
             put("posted_at", postedAt)
             put("direction", direction)
@@ -24,6 +26,18 @@ class CaptureQueue private constructor(context: Context) {
             put("status", CaptureQueueSchema.STATUS_PENDING)
         }
         return database.writableDatabase.insert(CaptureQueueSchema.TABLE, null, values)
+    }
+
+    fun resolveAi(id: Long, amount: Long, direction: String, merchant: String?, categoryId: Int?, note: String?) {
+        val values = ContentValues().apply {
+            put("amount", amount)
+            put("direction", direction)
+            put("merchant", merchant)
+            if (categoryId == null) putNull("category_id") else put("category_id", categoryId)
+            if (note == null) putNull("note") else put("note", note)
+        }
+        database.writableDatabase.update(CaptureQueueSchema.TABLE, values,
+            "id = ? AND direction = ?", arrayOf(id.toString(), "raw"))
     }
 
     fun getPending(): List<PendingCapture> {
@@ -145,33 +159,6 @@ class CaptureQueue private constructor(context: Context) {
         )
     }
 
-    fun hasRecentAmount(
-        amount: Long,
-        direction: String,
-        sourcePackage: String,
-        postedAt: Long,
-        windowMillis: Long,
-    ): Boolean {
-        val since = postedAt - windowMillis
-        return database.readableDatabase.query(
-            CaptureQueueSchema.TABLE,
-            arrayOf("id"),
-            "amount = ? AND direction = ? AND source_package != ? AND posted_at >= ?",
-            arrayOf(
-                amount.toString(),
-                direction,
-                sourcePackage,
-                since.toString(),
-            ),
-            null,
-            null,
-            null,
-            "1",
-        ).use { cursor ->
-            cursor.moveToFirst()
-        }
-    }
-
     fun countUnanswered(): Int {
         return database.readableDatabase.rawQuery(
             "SELECT COUNT(*) FROM ${CaptureQueueSchema.TABLE} " +
@@ -194,3 +181,4 @@ class CaptureQueue private constructor(context: Context) {
         }
     }
 }
+

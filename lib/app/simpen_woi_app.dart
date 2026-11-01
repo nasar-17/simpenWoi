@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/constants/app_constants.dart';
-import '../features/capture/presentation/providers/capture_providers.dart';
+import 'capture_runtime.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -21,26 +21,14 @@ class SimpenWoiApp extends ConsumerStatefulWidget {
 
 class _SimpenWoiAppState extends ConsumerState<SimpenWoiApp>
     with WidgetsBindingObserver {
-  StreamSubscription<void>? _captureEvents;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _captureEvents = ref.read(nativeCaptureBridgeProvider).captureEvents.listen(
-      (void _) {
-        _syncCaptures();
-      },
-      onError: (Object _) {},
-    );
-    WidgetsBinding.instance.addPostFrameCallback((Duration timeStamp) {
-      _syncCaptures();
-    });
   }
 
   @override
   void dispose() {
-    _captureEvents?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -48,14 +36,12 @@ class _SimpenWoiAppState extends ConsumerState<SimpenWoiApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _syncCaptures();
+      unawaited(_syncCaptures());
     }
   }
 
-  Future<void> _syncCaptures() async {
-    try {
-      await ref.read(captureSyncServiceProvider).sync();
-    } catch (_) {}
+  Future<void> _syncCaptures() {
+    return ref.read(captureRuntimeProvider).sync();
   }
 
   @override
@@ -67,6 +53,33 @@ class _SimpenWoiAppState extends ConsumerState<SimpenWoiApp>
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
       routerConfig: _appRouter,
+      builder: (BuildContext context, Widget? child) {
+        final String? error = ref.watch(captureRuntimeErrorProvider);
+        return Column(
+          children: <Widget>[
+            if (error != null)
+              SafeArea(
+                bottom: false,
+                child: Material(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(child: Text(error)),
+                        TextButton(
+                          onPressed: () => unawaited(_syncCaptures()),
+                          child: const Text('Coba lagi'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            Expanded(child: child ?? const SizedBox.shrink()),
+          ],
+        );
+      },
       locale: const Locale('id', 'ID'),
       supportedLocales: const <Locale>[Locale('id', 'ID')],
       localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
@@ -77,3 +90,4 @@ class _SimpenWoiAppState extends ConsumerState<SimpenWoiApp>
     );
   }
 }
+

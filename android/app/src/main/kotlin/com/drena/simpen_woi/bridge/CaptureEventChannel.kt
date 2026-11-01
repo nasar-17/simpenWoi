@@ -11,9 +11,8 @@ object CaptureEventChannel {
     private const val QUEUE_CHANGED = "queue_changed"
 
     private val mainHandler = Handler(Looper.getMainLooper())
-
-    @Volatile
     private var sink: EventChannel.EventSink? = null
+    private var pendingChange = false
 
     fun attach(flutterEngine: FlutterEngine) {
         EventChannel(
@@ -23,6 +22,7 @@ object CaptureEventChannel {
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     sink = events
+                    deliverPendingChange()
                 }
 
                 override fun onCancel(arguments: Any?) {
@@ -34,10 +34,20 @@ object CaptureEventChannel {
 
     fun emitQueueChanged() {
         mainHandler.post {
-            try {
-                sink?.success(mapOf(EVENT_TYPE to QUEUE_CHANGED))
-            } catch (_: Exception) {
-            }
+            pendingChange = true
+            deliverPendingChange()
+        }
+    }
+
+    private fun deliverPendingChange() {
+        if (!pendingChange) return
+        val events = sink ?: return
+        try {
+            events.success(mapOf(EVENT_TYPE to QUEUE_CHANGED))
+            pendingChange = false
+        } catch (_: RuntimeException) {
+            // The queue stays durable and this signal can be delivered later.
+            sink = null
         }
     }
 }
